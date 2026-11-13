@@ -132,7 +132,7 @@ nav button.on{color:var(--ac);font-weight:700}
 .pc.em{background:none;border:2px dashed var(--bd);cursor:default;box-shadow:none}
 .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .atk{display:flex;flex-direction:column;gap:2px;align-items:center;padding:10px 6px;margin:0;border-radius:14px}
-.atk small{font-weight:500;font-size:11px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.atk small{font-weight:500;font-size:10.5px;opacity:.92;line-height:1.3}
 .wide{grid-column:1/-1;display:flex;justify-content:center;gap:10px;align-items:center}
 .flt{position:fixed;transform:translateX(-50%);font-weight:800;font-size:22px;z-index:99;animation:fup 1.1s forwards;pointer-events:none;text-shadow:0 2px 6px #0008}
 .flt.dmg{color:#ff5544}
@@ -153,6 +153,13 @@ nav button.on{color:var(--ac);font-weight:700}
 .itv span{font-size:40px;display:block}
 .itv b{font-size:17px}
 .itv p{font-size:13px;color:var(--mt);margin-top:4px}
+#coinfx{position:fixed;inset:0;display:grid;place-items:center;align-content:center;gap:10px;z-index:50;background:#0009;pointer-events:none}
+.cin{font-size:90px;animation:csp .45s linear 2;text-shadow:0 6px 20px #0008}
+@keyframes csp{to{transform:rotateY(720deg)}}
+.ct{color:#fff;font-weight:800;font-size:18px;letter-spacing:.05em;text-shadow:0 2px 8px #000}
+.rls{background:var(--sf);color:var(--tx);border-radius:14px;padding:16px 18px;max-width:430px;text-align:left;font-size:13px;box-shadow:0 10px 30px #0006}
+.rls h2{margin-bottom:8px}
+.rls p{margin:7px 0;line-height:1.45}
 #tst{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:8px 16px;border-radius:99px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .3s;z-index:20;white-space:nowrap}
 #tst.on{opacity:1}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -174,13 +181,20 @@ const EN={F:"🔥",O:"💧",P:"🍃",E:"⚡"},WK={F:"O",O:"P",P:"F",E:"P"};
 const RS=["◆","◆◆","◆◆◆","★","★★"],MAX=5,INT=90000,MAXQ=3,MINC=6;
 const CO=[1,2,3,3,4],RT=[1,1,2,2,2];
 const RAW="Braisillon,F,🐣,1,Flammèche,Braise Vive;Rouxcendre,F,🦊,1,Flammèche,Croc Ardent;Gouttelin,O,🐟,1,Jet d’Écume,Vaguelette;Ranoé,O,🐸,1,Bulles,Langue Fouettée;Chenillon,P,🐛,1,Fouet-Liane,Charge Piquante;Mousseron,P,🍄,1,Spores,Danse des Champignons;Voltabeille,E,🐝,1,Étincelle,Dard Voltaïque;Étincelot,E,🐿️,1,Étincelle,Queue Éclair;Cactouille,P,🌵,1,Piqûre,Roue Épineuse;Pyrolin,F,🦎,2,Flammèche,Crachat Ardent;Tortuonde,O,🐢,2,Morsure,Vague Bouclier;Papillune,P,🦋,2,Poudre Toxique,Tornade d’Ailes;Foudrelle,E,🦔,2,Étincelle,Boule Foudroyante;Pingouflot,O,🐧,2,Coup de Bec,Toboggan Glacé;Lavabouc,F,🐐,2,Coup de Corne,Souffle de Lave;Abyssal,O,🐙,3,Jet d’Encre,Vortex Abyssal;Sylvanor,P,🦌,3,Fouet-Liane,Bois Gardien;Tonnerrion,E,🦃,3,Étincelle,Orage Déchaîné;Cendrelame,F,🐎,3,Coupe de Sabot,Croc de Braise;Aurorfeu,F,🦅,4,Serre Ardente,Phénix Ascendant;Léviatide,O,🐋,4,Queue Maréale,Tsunami;Yggraël,P,🌳,4,Racines,Fureur de la Forêt;Zéphyrion,E,🦄,5,Éclair,Jugement du Ciel;Draconyx,F,🐉,5,Gueule Ardente,Apocalypse de Feu";
-const SIG={F:["burn","drain","atk","big"],O:["par","heal","def","big"],P:["psn","draw","def","big"],E:["par","draw","atk","big"]};
-const FXD={burn:{v:10},psn:{v:10},par:{v:.4},heal:{v:25},drain:{v:.5},def:{},atk:{},draw:{v:2},big:{v:15}};
+const POOL={F:[{var:"flat",fx:"burn"},{var:"recoil",v:10},{var:"mult",v:2},{var:"coins"},{var:"coinp"},{var:"scale"}],O:[{var:"scale"},{var:"flat",fx:"par"},{var:"flat",fx:"heal"},{var:"coinp"},{var:"mult",v:2},{var:"flat",fx:"def"}],P:[{var:"flat",fx:"psn"},{var:"mult",v:2},{var:"flat",fx:"draw"},{var:"coins"},{var:"flat",fx:"def"},{var:"scale"}],E:[{var:"coinp"},{var:"flat",fx:"par"},{var:"flat",fx:"draw"},{var:"coins"},{var:"mult",v:3},{var:"flat",fx:"atk"}]};
+const VT={coins:"\ud83e\ude99\u26a1",coinp:"\ud83e\ude99?",scale:"+\u26a1",recoil:"\u21a9\ufe0f"};
 const FXT={burn:"🔥 Brûlure",psn:"☠️ Poison",par:"💫 Paralysie",heal:"💚 Soin",drain:"🩸 Vole-vie",def:"🛡️ Défense ↑",atk:"💪 Attaque ↑",draw:"📜 Pioche 2"};
-const C=RAW.split(";").map((s,i)=>{const[n,t,e,r,a1,a2]=s.split(","),R=+r,b=[12,16,22,30,40][R-1],sig=SIG[t][i%4];
- return{id:i,n,t,e,r:R,h:[50,65,85,110,140][R-1],a:b,ak:[
-  {n:a1,cost:1,d:Math.round(b*.55),fx:null},
-  {n:a2,cost:CO[R-1],d:b+(sig=="big"?15:0),fx:sig=="big"?null:sig}]}});
+function atkTxt(A){let s=A.var=="coins"?`1 pièce par énergie ⚡ : ${A.d} par Face`:A.var=="coinp"?`1 pièce : Face → ${A.d+A.v}, pile → ${A.d}`:A.var=="mult"?`${A.v} coups de ${A.d}`:A.var=="scale"?`${A.d} + ${A.v} par énergie ⚡ en plus`:A.var=="recoil"?`${A.d} dégâts, ${A.v} en retour`:`${A.d} dégâts`;
+ return A.fx?s+" · "+FXT[A.fx]:s}
+const C=RAW.split(";").map((s,i)=>{const[n,t,e,r,a1,a2]=s.split(","),R=+r,b=[12,16,22,30,40][R-1],P2=POOL[t][i%6];
+ const k1=i%3==0?{n:a1,cost:1,v:0,d:Math.round(b*.4),var:"coins",fx:null}:{n:a1,cost:1,v:0,d:Math.round(b*.55),var:"flat",fx:null};
+ let d2=b+10,v2=P2.v||0;
+ if(P2.var=="mult")d2=Math.round(b*(P2.v==3?.45:.6));
+ else if(P2.var=="coins")d2=Math.round(b*.7);
+ else if(P2.var=="coinp"){d2=Math.round(b*.7);v2=Math.round(b*.6)}
+ else if(P2.var=="scale"){d2=Math.round(b*.6);v2=Math.round(b*.4)}
+ else if(P2.var=="flat")d2=b;
+ return{id:i,n,t,e,r:R,h:[50,65,85,110,140][R-1],a:b,ak:[k1,{n:a2,cost:CO[R-1],d:d2,v:v2,var:P2.var,fx:P2.fx||null}]}});
 const IT=[
  {id:0,n:"Potion",e:"🧪",d:"Soigne 30 PV à une créature.",k:"heal",v:30},
  {id:1,n:"Super Potion",e:"💉",d:"Soigne 60 PV à une créature.",k:"heal",v:60},
@@ -198,7 +212,7 @@ const $=s=>document.querySelector(s),own=()=>C.filter(c=>S.o[c.id]),ov=$("#ov");
 const AC=null;
 const snd=(f1,f2,d,ty="sine",v=.12)=>{if(S.m)return;try{const A=window.AC||new (window.AudioContext||window.webkitAudioContext)();window.AC=A;const o=A.createOscillator(),g=A.createGain();o.type=ty;o.frequency.setValueAtTime(f1,A.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(1,f2),A.currentTime+d);g.gain.setValueAtTime(v,A.currentTime);g.gain.exponentialRampToValueAtTime(.001,A.currentTime+d);o.connect(g).connect(A.destination);o.start();o.stop(A.currentTime+d)}catch(e){}};
 const sAtk=()=>snd(480,900,.12,"sawtooth"),sHit=()=>snd(170,55,.18,"square"),sHeal=()=>snd(520,1040,.22),sKO=()=>snd(320,40,.5,"sawtooth"),sWin=()=>{snd(520,520,.12);setTimeout(()=>snd(660,660,.12),140);setTimeout(()=>snd(880,880,.25),280)};
-const card=c=>`<div class="cw"><div class="card ${c.t} r${c.r}"><div class="h"><span>${EN[c.t]} ${c.n}</span><span class="hp">PV ${c.h}</span></div><div class="art"><span>${c.e}</span></div><div class="aks">${c.ak.map(a=>`<div class="al"><span class="cst">${"●".repeat(a.cost)}</span><span>${a.n}</span>${a.fx?`<span class="fxi">${FXT[a.fx]}</span>`:""}<b>${a.d}</b></div>`).join("")}</div><div class="rr">${RS[c.r-1]}</div></div></div>`;
+const card=c=>`<div class="cw"><div class="card ${c.t} r${c.r}"><div class="h"><span>${EN[c.t]} ${c.n}</span><span class="hp">PV ${c.h}</span></div><div class="art"><span>${c.e}</span></div><div class="aks">${c.ak.map(a=>`<div class="al"><span class="cst">${"●".repeat(a.cost)}</span><span>${a.n}</span>${a.fx?`<span class="fxi">${FXT[a.fx]}</span>`:""}<b>${a.var=="mult"?a.d+"×"+a.v:a.d}${a.var!="flat"&&a.var!="mult"?VT[a.var]||"":""}</b></div>`).join("")}</div><div class="rr">${RS[c.r-1]}</div></div></div>`;
 const itemCard=it=>`<div class="cw"><div class="card itc2"><div class="h"><span>🎒 ${it.n}</span></div><div class="art"><span>${it.e}</span></div><div class="al2">${it.d}</div><div class="rr">OBJET</div></div></div>`;
 function toast(s){const t=$("#tst");t.textContent=s;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),1800)}
 function deckList(){if(!S.dk||!S.dk.c)return null;const cs=[];let cre=0;
@@ -247,11 +261,11 @@ function begin(){G.n++;const s=G.t?G.a:G.p;
 function endTurn(){G.t^=1;begin()}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function float(el,txt,cls,del=0){if(!el)return;setTimeout(()=>{const r=el.getBoundingClientRect(),d=document.createElement("div");d.className="flt "+(cls||"dmg");d.textContent=txt;d.style.left=(r.left+r.width/2)+"px";d.style.top=(r.top+r.height*.28)+"px";document.body.appendChild(d);setTimeout(()=>d.remove(),1150)},del)}
-async function animAtk(w,dm,wk,fx){const ap=$(w?"#zx":"#za"),df=$(w?"#za":"#zx");
+async function animAtk(w,dm,wk,fx,hits=1){const ap=$(w?"#zx":"#za"),df=$(w?"#za":"#zx");
  if(!ap||!df)return;
  ap.classList.add(w?"lgU":"lgD");sAtk();
  await sleep(260);
- df.classList.add("hit");float(df.querySelector(".spr"),"−"+dm,wk?"wk":"dmg");
+ df.classList.add("hit");float(df.querySelector(".spr"),"−"+dm+(hits>1?" ("+hits+" coups)":""),wk?"wk":"dmg");
  if(fx)float(df.querySelector(".spr"),FXT[fx],"fx",420);
  sHit();
  await sleep(620);
@@ -265,25 +279,44 @@ function applyFx(a,x,y,fx,dm,w){
  else if(fx=="heal"){const h=Math.min(x.c.h-x.hp,25);x.hp+=h;if(h>0){sHeal();float($(w?"#zx":"#za").querySelector(".spr"),"+25","heal")}}
  else if(fx=="drain"){const h=Math.round(dm*.5);x.hp=Math.min(x.c.h,x.hp+h);sHeal();float($(w?"#zx":"#za").querySelector(".spr"),"+"+h,"heal")}
  else if(fx=="draw"){for(let k=0;k<2&&a.dk.length;k++)a.hd.push(a.dk.pop())}}
+function coinAnim(n){return new Promise(res=>{const d=document.createElement("div");d.id="coinfx";
+ d.innerHTML=`<div class="cin">🪙</div><p class="ct">Lance ${n>1?n+" pièces":"une pièce"}…</p>`;
+ document.body.appendChild(d);snd(650,250,.18,"triangle");
+ setTimeout(()=>{const rs=Array.from({length:n},()=>Math.random()<.5),h=rs.filter(Boolean).length;
+  d.querySelector(".cin").textContent=h?"🪙":"⚪";
+  d.querySelector(".ct").textContent=rs.map(r=>r?"FACE":"pile").join(" · ")+(n>1?` → ${h} Face${h>1?"s":""}`:"");
+  snd(h?880:220,h?1250:140,.28,"triangle");
+  setTimeout(()=>{d.remove();res(h)},1000)},850)})}
 async function atk(w,i){const a=w?G.a:G.p,d=w?G.p:G.a,x=a.ac,y=d.ac,A=x.c.ak[i];
  if(x.en.length<A.cost){if(!w){G.m=`Il faut ${A.cost} énergie(s) pour ${A.n} (tu en as ${x.en.length}).`;board()}return}
- if(x.st.par>0&&Math.random()<.4){G.busy=1;board();await sleep(200);
+ G.busy=1;board();await sleep(120);
+ if(x.st.par>0&&Math.random()<.4){
   float($(w?"#zx":"#za").querySelector(".spr"),"💫","fx");
   G.m=`💫 ${x.c.n} est paralysé : l’attaque échoue !`;G.busy=0;endTurn();board();return}
- G.busy=1;board();await sleep(120);
- let dm=A.d+(x.bst||0);x.bst=0;
+ let dm=0,heads=0,fail=false;
+ if(A.var=="coins"){heads=await coinAnim(x.en.length);dm=A.d*heads;fail=!heads}
+ else if(A.var=="coinp"){heads=await coinAnim(1);dm=A.d+(heads?A.v:0)}
+ else dm=A.d;
+ if(fail){G.m=`🪙 Aucune Face pour ${A.n} : l’attaque échoue !`;G.busy=0;endTurn();board();return}
  const wk=WK[y.c.t]==x.c.t;if(wk)dm+=20;
  if(x.st.atk>0)dm=Math.round(dm*1.3);
  if(y.st.def>0)dm=Math.round(dm*.7);
- await animAtk(w,dm,wk,A.fx);
+ await animAtk(w,dm,wk,A.fx,A.var=="mult"?A.v:1);
  y.hp-=dm;
  if(A.fx)applyFx(a,x,y,A.fx,dm,w);
- if(y.hp<=0){await sleep(150);const dz=$(w?"#za":"#zx");if(dz)dz.classList.add("ko");sKO();await sleep(780);
-  G.busy=0;if(koOf(d)){board();return}
-  if(d==G.p){board();return}
-  endTurn();board();return}
- G.m=`${x.c.e} ${x.c.n} utilise ${A.n} : −${dm} PV${wk?" (faiblesse !)":""}${A.fx?" · "+FXT[A.fx]:""}`;
- G.busy=0;endTurn();board()}
+ const settle=async()=>{
+  if(y.hp<=0){await sleep(150);const dz=$(w?"#za":"#zx");if(dz)dz.classList.add("ko");sKO();await sleep(780);
+   if(koOf(d))return"end";
+   if(d==G.p)return"wait";
+   if(A.var=="recoil"&&x.hp<=0){if(koOf(a))return"end";return a==G.p?"wait":"turn"}
+   return"turn"}
+  if(A.var=="recoil"&&x.hp<=0){const az=$(w?"#zx":"#za");if(az)az.classList.add("ko");sKO();await sleep(780);
+   if(koOf(a))return"end";return a==G.p?"wait":"turn"}
+  G.m=`${x.c.e} ${x.c.n} utilise ${A.n} : −${dm} PV${wk?" (faiblesse !)":""}${A.var=="coins"?` (${heads} Face${heads>1?"s":""})`:""}${A.var=="mult"?` (${A.v} coups)`:""}${A.fx?" · "+FXT[A.fx]:""}`;
+  return"turn"};
+ const r=await settle();G.busy=0;
+ if(r=="end"||r=="wait"){board();return}
+ endTurn();board()}
 function applyPend(k,t){const it=G.pend;G.pend=null;
  if(it.k=="boost"){if(k!="a"){G.pend=it;G.m="Le Poing Boost cible ta créature active."}else{t.bst+=30;G.m="💪 Prochaine attaque : +30 dégâts !"}}
  else if(it.k=="en2"){t.en.push(rn(TY),rn(TY));sHeal();G.m="🔋 Double énergie attachée !"}
@@ -306,8 +339,16 @@ function ai(){if(!G||G.over)return;const s=G.a;
  const i=s.ac.en.length>=s.ac.c.ak[1].cost?1:(s.ac.en.length>=s.ac.c.ak[0].cost?0:-1);
  if(i>=0)atk(1,i);
  else{G.m="Le rival passe son tour.";endTurn();board()}}
+function rules(){show(`<div class="rls"><h2>📖 Règles du duel</h2>
+ <p><b>🎯 But :</b> premier à 3 ★ gagne. K.O. = 1 ★, K.O. d’une carte ★★ = 2 ★.</p>
+ <p><b>🔄 Ton tour :</b> 1️⃣ attache ton énergie (clique-la, puis une créature) · 2️⃣ joue des objets 🎒 depuis la main · 3️⃣ pose jusqu’à 3 créatures au banc · 4️⃣ attaque · 5️⃣ retraite (clique une créature du banc pour l’échanger avec l’active, coût en énergie).</p>
+ <p><b>🪙 Pièces :</b> certaines attaques lancent des pièces : chaque Face inflige des dégâts, pile ne donne rien. Plus tu as d’énergie, plus tu lances de pièces !</p>
+ <p><b>🩹 Statuts :</b> 🔥 brûlure −10 PV/tour · ☠️ poison −10 PV/tour · 💫 paralysie 40 % de chance d’échouer.</p>
+ <p><b>💥 Faiblesse :</b> 🔥 Flamme &gt; 🍃 Feuille &gt; 💧 Onde &gt; 🔥 Flamme : +20 dégâts. ⚡ Éclair est neutre.</p>
+ <p><b>🎒 Objets :</b> 🧪💉 potions, 💊 antidote, 🔋 double énergie, 💪 boost +30, 📜 pioche, 🌀 repli gratuit.</p></div><button class="btn" onclick="hide()">Fermer</button>`,hide)}
 function lobby(){G=null;const dl=deckList(),o=own();
- $("main").innerHTML=`<h1>Duel</h1><p class="mt">Premier à 3 ★ gagne : K.O. = 1 ★, carte ★★ = 2 ★. Une énergie par tour, faiblesse +20 dégâts, brûlure, poison, paralysie, objets à jouer depuis la main.</p><p class="mt">${dl?"✅ Deck prêt (20 cartes).":"⚠️ Deck invalide ou non enregistré : un deck auto sera utilisé."}</p>${o.length?`<button class="btn" id="go">Lancer le duel</button><button class="lk" id="gb">Modifier mon deck 🛠️</button>`:'<p class="mt">Ouvre d’abord un booster pour obtenir des créatures.</p>'}`;
+ $("main").innerHTML=`<h1>Duel</h1><p class="mt">Premier à 3 ★ gagne (K.O. = 1 ★, carte ★★ = 2 ★). Chaque tour : 1 énergie ⚡, des objets 🎒, des renforts au banc, puis une attaque. Certaines attaques lancent des pièces 🪙.</p><p class="mt">${dl?"✅ Deck prêt (20 cartes).":"⚠️ Deck invalide ou non enregistré : un deck auto sera utilisé."}</p>${o.length?`<button class="btn" id="go">Lancer le duel</button><button class="lk" id="gb">Modifier mon deck 🛠️</button>`:'<p class="mt">Ouvre d’abord un booster pour obtenir des créatures.</p>'}<button class="lk" id="rl">📖 Voir les règles</button>`;
+ $("#rl").onclick=rules;
  if(!o.length)return;
  $("#go").onclick=duel;$("#gb").onclick=()=>{tab="dk";render()}}
 function battle(){G&&!G.over?board():lobby()}
@@ -329,7 +370,7 @@ function board(){
   ?`<div class="pc ${e.c.t}" data-h="${i}"><span>${e.c.e}</span><b>${e.c.n}</b><i style="width:${100*e.c.h/140}%"></i>PV ${e.c.h}</div>`
   :`<div class="pc itc" data-h="${i}"><span>${e.it.e}</span><b>${e.it.n}</b><u>objet</u></div>`).join("");
  const acts=G.over?`<div class="wide"><p class="mt big">${G.win?"🏆 Victoire ! +1 booster 🎁":"💀 Défaite…"}</p></div><div class="wide"><button class="btn" id="nw">Nouveau duel</button></div>`
-  :p.ac?`<div class="acts">${p.ac.c.ak.map((A,i)=>`<button class="btn atk" data-k="${i}" ${my?"":"disabled"}><span>${A.n}</span><small>⚡${A.cost} · ${A.d} dégâts${A.fx?" · "+FXT[A.fx]:""}</small></button>`).join("")}<div class="wide"><span class="chip${G.es?" on":""}" id="ez">${p.ez?EN[p.ez]+" énergie à attacher":"pas d’énergie ce tour"}</span><button class="sbtn" id="ps">Passer</button></div>${G.pend||G.es?'<div class="wide"><button class="lk" id="cc">Annuler l’action en cours</button></div>':""}</div>`
+  :p.ac?`<div class="acts">${p.ac.c.ak.map((A,i)=>`<button class="btn atk" data-k="${i}" ${my?"":"disabled"}><span>${A.n}</span><small>⚡${A.cost} · ${atkTxt(A)}</small></button>`).join("")}<div class="wide"><span class="chip${G.es?" on":""}" id="ez">${p.ez?EN[p.ez]+" énergie à attacher":"pas d’énergie ce tour"}</span><button class="sbtn" id="ps">Passer</button><button class="sbtn" id="rl">❓</button></div>${G.pend||G.es?'<div class="wide"><button class="lk" id="cc">Annuler l’action en cours</button></div>':""}</div>`
   :`<div class="wide"><span class="chip on">Choisis une créature du banc ▲</span></div>`;
  m.innerHTML=`<div class="arena"><div class="foe"><div class="bar"><b>Rival ${a.pt}/3 ★</b><span class="mt2">main ${a.hd.length} · pioche ${a.dk.length}</span>${G.t?'<span class="turnv">▶ rival joue</span>':""}</div><div class="bnr">${a.bn.map((x,i)=>`<div class="mini" style="cursor:default"><div class="spr ${x.c.t}">${x.c.e}</div><span class="mh">${x.c.n}</span><span class="mh">PV ${mx0(x.hp)}</span></div>`).join("")}</div><div class="actv">${z("x",a.ac)}</div></div><p class="msg">${G.m}</p><div class="actv me">${z("a",p.ac)}</div><div class="bnr">${[0,1,2].map(i=>p.bn[i]?mini(p.bn[i],i):'<div class="mini" style="cursor:default;opacity:.4">vide</div>').join("")}</div><div class="bar"><b>Toi ${p.pt}/3 ★</b>${!G.t?'<span class="turnv">▶ à toi</span>':""}<span class="mt2">retraite : clique un banc</span></div></div><div class="hd">${hand||'<div class="pc em">main vide</div>'}</div>${acts}`;
  if(G.over){$("#nw").onclick=()=>{G=null;render()};return}
@@ -355,7 +396,8 @@ function board(){
    else{const r=RT[p.ac.c.r-1];if(p.ac.en.length>=r){p.ac.en.splice(0,r);[p.ac,p.bn[+k[1]]]=[t,p.ac];G.m="Retraite effectuée."}else G.m=`Retraite : ${r} énergie(s) requise(s) sur l’actif.`}}
   board()});
  m.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{if(!my)return;atk(0,+b.dataset.k)});
- const ps=$("#ps");if(ps)ps.onclick=()=>{if(!my)return;G.m="Tu passes ton tour.";endTurn();board()}}
+ const ps=$("#ps");if(ps)ps.onclick=()=>{if(!my)return;G.m="Tu passes ton tour.";endTurn();board()};
+ const rl=$("#rl");if(rl)rl.onclick=rules}
 function dkTot(){return S.dk.c.reduce((a,e)=>a+e[1],0)+S.dk.it.reduce((a,e)=>a+e[1],0)}
 function dkCre(){return S.dk.c.reduce((a,e)=>a+e[1],0)}
 function dkAdd(t,id,d){const arr=t=="c"?S.dk.c:S.dk.it;let e=arr.find(x=>x[0]==id);
@@ -399,7 +441,7 @@ function render(){
   $("#mu").onclick=()=>{S.m=S.m?0:1;save();render()};
  }else if(tab=="co"){
   m.innerHTML=`<h1>Collection</h1><p class="mt">${own().length} / ${C.length} créatures · touche une carte pour les détails</p><div class="g">${C.map(c=>S.o[c.id]?`<div class="sw" data-i="${c.id}">${card(c)}${S.o[c.id]>1?`<span class="x">×${S.o[c.id]}</span>`:""}</div>`:`<div class="cw"><div class="card ph">?</div></div>`).join("")}</div><button class="lk" id="rs">Réinitialiser la partie</button>`;
-  m.querySelectorAll("[data-i]").forEach(d=>d.onclick=()=>{const c=C[d.dataset.i];show(`<div style="width:min(75vw,300px)">${card(c)}</div><p>${T[c.t]} · faible contre ${T[WK[c.t]]} · ${c.ak.map(a=>`${a.n} (⚡${a.cost}, ${a.d}${a.fx?" · "+FXT[a.fx]:""})`).join(" — ")}</p><p>Touche pour fermer</p>`,hide)});
+  m.querySelectorAll("[data-i]").forEach(d=>d.onclick=()=>{const c=C[d.dataset.i];show(`<div style="width:min(75vw,300px)">${card(c)}</div><p>${T[c.t]} · faible contre ${T[WK[c.t]]}</p><p>${c.ak.map(a=>`<b>${a.n}</b> (⚡${a.cost}) : ${atkTxt(a)}`).join("<br>")}</p><p>Touche pour fermer</p>`,hide)});
   $("#rs").onclick=e=>{if(!e.target.dataset.s){e.target.dataset.s=1;e.target.textContent="Clique encore pour tout effacer"}else{S={p:3,t:Date.now(),o:{},w:0,n:0,dk:null,m:0};save();render()}};
  }else if(tab=="dk"){dkTab();return}else{battle()}
  tick()}
