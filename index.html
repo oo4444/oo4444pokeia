@@ -88,6 +88,7 @@ nav button.on{color:var(--ac);font-weight:700}
 .skc b{font-size:11px}
 .skc .mt2{font-size:10px}
 .skv{display:inline-flex;width:44px;height:44px;border-radius:50%;align-items:center;justify-content:center;font-size:22px;border:2px solid #fff6;box-shadow:0 2px 6px #0004,inset 0 -3px 5px #0003}
+.pass{text-align:center;padding:70px 16px}
 .sets .foil.on{opacity:1;outline-color:var(--ac);animation:fl 3s ease-in-out infinite}
 .arena{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:8px;box-shadow:0 6px 20px #0002}
 .arena .foe{background:linear-gradient(180deg,#e8572f14,#0000 70%);border-radius:12px;padding:4px}
@@ -274,11 +275,12 @@ function side(list){const dk=[...list].sort(()=>Math.random()-.5);
  s.ty=[...new Set(list.filter(e=>e.k=="c").map(e=>e.c.t))];
  return s}
 function duel(){G={p:side(myDeck()),a:side(aiDeck()),t:0,m:"À toi ! Pose des créatures depuis la main, attache l’énergie ⚡, joue des objets 🎒, puis attaque.",es:0,pr:0,n:0,over:0,win:0,busy:0,pend:null};begin();board()}
+function duelMP(){G={p:side(myDeck()),a:side(myDeck()),t:0,mp:1,view:0,m:"Joueur 1 commence ! Pose des créatures, attache l’énergie ⚡, puis attaque. Passe l’appareil à chaque fin de tour.",es:0,pr:0,prs:null,n:0,over:0,win:0,busy:0,pend:null};begin();board()}
 function koOf(s){const o=s==G.p?G.a:G.p,pts=s.ac.c.r>3?2:1;
  o.pt+=pts;G.m+=` ${s.ac.c.n} est K.O. ! (+${pts} ★)`;s.ac=null;
- if(o.pt>=3||!s.bn.length){G.over=1;G.win=s==G.a;if(G.win){S.w++;S.p=Math.min(MAX,S.p+1);save();sWin()}return true}
- if(s==G.a){s.ac=s.bn.shift();G.m+=` Le rival envoie ${s.ac.c.n}.`}
- else{G.pr=1;G.m+=" Choisis ta nouvelle créature active."}
+ if(o.pt>=3||!s.bn.length){G.over=1;G.win=s==G.a;if(G.win){if(!G.mp){S.w++;S.p=Math.min(MAX,S.p+1);save()}sWin()}return true}
+ if(s==G.a&&!G.mp){s.ac=s.bn.shift();G.m+=` Le rival envoie ${s.ac.c.n}.`}
+ else{G.pr=1;G.prs=s;G.m+=" Choisis ta nouvelle créature active."}
  return false}
 function begin(){G.n++;const s=G.t?G.a:G.p;
  if(s.dk.length)s.hd.push(s.dk.pop());
@@ -292,27 +294,28 @@ function begin(){G.n++;const s=G.t?G.a:G.p;
   if(x.st.atk>0)x.st.atk--;
   if(dm){x.hp-=dm;G.m=`${x.c.e} ${x.c.n} subit ${msgs.join(" et ")}.`}
   if(x.hp<=0){koOf(s);if(G.over)return}}
- if(G.t)setTimeout(ai,900)}
+ if(G.t&&!G.mp)setTimeout(ai,900)}
 function endTurn(){G.t^=1;begin()}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function float(el,txt,cls,del=0){if(!el)return;setTimeout(()=>{const r=el.getBoundingClientRect(),d=document.createElement("div");d.className="flt "+(cls||"dmg");d.textContent=txt;d.style.left=(r.left+r.width/2)+"px";d.style.top=(r.top+r.height*.28)+"px";document.body.appendChild(d);setTimeout(()=>d.remove(),1150)},del)}
-async function animAtk(w,dm,wk,fx,hits=1){const ap=$(w?"#zx":"#za"),df=$(w?"#za":"#zx");
+const zid=w=>{const me=G.mp&&G.t?G.a:G.p;return((w?G.a:G.p)==me)?"#za":"#zx"};
+async function animAtk(w,dm,wk,fx,hits=1){const ap=$(zid(w)),df=$(zid(w^1));
  if(!ap||!df)return;
- ap.classList.add(w?"lgU":"lgD");sAtk();
+ ap.classList.add(ap.id=="zx"?"lgU":"lgD");sAtk();
  await sleep(260);
  df.classList.add("hit");float(df.querySelector(".spr"),"−"+dm+(hits>1?" ("+hits+" coups)":""),wk?"wk":"dmg");
  if(fx)float(df.querySelector(".spr"),FXT[fx],"fx",420);
  sHit();
  await sleep(620);
- ap.classList.remove(w?"lgU":"lgD");df.classList.remove("hit")}
+ ap.classList.remove(ap.id=="zx"?"lgU":"lgD");df.classList.remove("hit")}
 function applyFx(a,x,y,fx,dm,w){
  if(fx=="burn")y.st.burn=3;
  else if(fx=="psn")y.st.psn=3;
  else if(fx=="par")y.st.par=2;
  else if(fx=="def")x.st.def=3;
  else if(fx=="atk")x.st.atk=2;
- else if(fx=="heal"){const h=Math.min(x.c.h-x.hp,25);x.hp+=h;if(h>0){sHeal();float($(w?"#zx":"#za").querySelector(".spr"),"+25","heal")}}
- else if(fx=="drain"){const h=Math.round(dm*.5);x.hp=Math.min(x.c.h,x.hp+h);sHeal();float($(w?"#zx":"#za").querySelector(".spr"),"+"+h,"heal")}
+ else if(fx=="heal"){const h=Math.min(x.c.h-x.hp,25);x.hp+=h;if(h>0){sHeal();float($(zid(w)).querySelector(".spr"),"+25","heal")}}
+ else if(fx=="drain"){const h=Math.round(dm*.5);x.hp=Math.min(x.c.h,x.hp+h);sHeal();float($(zid(w)).querySelector(".spr"),"+"+h,"heal")}
  else if(fx=="draw"){for(let k=0;k<2&&a.dk.length;k++)a.hd.push(a.dk.pop())}}
 function coinAnim(n){return new Promise(res=>{const d=document.createElement("div");d.id="coinfx";
  d.innerHTML=`<div class="cin">🪙</div><p class="ct">Lance ${n>1?n+" pièces":"une pièce"}…</p>`;
@@ -323,10 +326,10 @@ function coinAnim(n){return new Promise(res=>{const d=document.createElement("di
   snd(h?880:220,h?1250:140,.28,"triangle");
   setTimeout(()=>{d.remove();res(h)},1000)},850)})}
 async function atk(w,i){const a=w?G.a:G.p,d=w?G.p:G.a,x=a.ac,y=d.ac,A=x.c.ak[i];
- if(x.en.length<A.cost){if(!w){G.m=`Il faut ${A.cost} énergie(s) pour ${A.n} (tu en as ${x.en.length}).`;board()}return}
+ if(x.en.length<A.cost){G.m=`Il faut ${A.cost} énergie(s) pour ${A.n} (tu en as ${x.en.length}).`;board();return}
  G.busy=1;board();await sleep(120);
  if(x.st.par>0&&Math.random()<.4){
-  float($(w?"#zx":"#za").querySelector(".spr"),"💫","fx");
+  float($(zid(w)).querySelector(".spr"),"💫","fx");
   G.m=`💫 ${x.c.n} est paralysé : l’attaque échoue !`;G.busy=0;endTurn();board();return}
  let dm=0,heads=0,fail=false;
  if(A.var=="coins"){heads=await coinAnim(x.en.length);dm=A.d*heads;fail=!heads}
@@ -340,12 +343,12 @@ async function atk(w,i){const a=w?G.a:G.p,d=w?G.p:G.a,x=a.ac,y=d.ac,A=x.c.ak[i];
  y.hp-=dm;
  if(A.fx)applyFx(a,x,y,A.fx,dm,w);
  const settle=async()=>{
-  if(y.hp<=0){await sleep(150);const dz=$(w?"#za":"#zx");if(dz)dz.classList.add("ko");sKO();await sleep(780);
+  if(y.hp<=0){await sleep(150);const dz=$(zid(w^1));if(dz)dz.classList.add("ko");sKO();await sleep(780);
    if(koOf(d))return"end";
    if(d==G.p)return"wait";
    if(A.var=="recoil"&&x.hp<=0){if(koOf(a))return"end";return a==G.p?"wait":"turn"}
    return"turn"}
-  if(A.var=="recoil"&&x.hp<=0){const az=$(w?"#zx":"#za");if(az)az.classList.add("ko");sKO();await sleep(780);
+  if(A.var=="recoil"&&x.hp<=0){const az=$(zid(w));if(az)az.classList.add("ko");sKO();await sleep(780);
    if(koOf(a))return"end";return a==G.p?"wait":"turn"}
   G.m=`${x.c.e} ${x.c.n} utilise ${A.n} : −${dm} PV${wk?" (faiblesse !)":""}${A.var=="coins"?` (${heads} Face${heads>1?"s":""})`:""}${A.var=="mult"?` (${A.v} coups)`:""}${A.fx?" · "+FXT[A.fx]:""}`;
   return"turn"};
@@ -375,6 +378,7 @@ function ai(){if(!G||G.over)return;const s=G.a;
  if(i>=0)atk(1,i);
  else{G.m="Le rival passe son tour.";endTurn();board()}}
 function rules(){show(`<div class="rls"><h2>📖 Règles du duel</h2>
+ <p><b>👥 2 joueurs :</b> même écran — passez l’appareil à chaque fin de tour, chacun ne voit que sa main. Les deux joueurs utilisent le deck enregistré.</p>
  <p><b>🎯 But :</b> premier à 3 ★ gagne. K.O. = 1 ★, K.O. d’une carte ★★ = 2 ★.</p>
  <p><b>🔄 Ton tour :</b> 1️⃣ attache ton énergie (clique-la, puis une créature) · 2️⃣ joue des objets 🎒 depuis la main · 3️⃣ pose jusqu’à 3 créatures au banc · 4️⃣ attaque · 5️⃣ retraite (clique une créature du banc pour l’échanger avec l’active, coût en énergie).</p>
  <p><b>🪙 Pièces :</b> certaines attaques lancent des pièces : chaque Face inflige des dégâts, pile ne donne rien. Plus tu as d’énergie, plus tu lances de pièces !</p>
@@ -382,13 +386,16 @@ function rules(){show(`<div class="rls"><h2>📖 Règles du duel</h2>
  <p><b>💥 Faiblesse :</b> 🔥 Flamme &gt; 🍃 Feuille &gt; 💧 Onde &gt; 🔥 Flamme : +20 dégâts. ⚡ Éclair est neutre.</p>
  <p><b>🎒 Objets :</b> 🧪💉 potions, 💊 antidote, 🔋 double énergie, 💪 boost +30, 📜 pioche, 🌀 repli gratuit.</p></div><button class="btn" onclick="hide()">Fermer</button>`,hide)}
 function lobby(){G=null;const dl=deckList(),o=own();
- $("main").innerHTML=`<h1>Duel</h1><p class="mt">Premier à 3 ★ gagne (K.O. = 1 ★, carte ★★ = 2 ★). Chaque tour : 1 énergie ⚡, des objets 🎒, des renforts au banc, puis une attaque. Certaines attaques lancent des pièces 🪙.</p><p class="mt">${dl?"✅ Deck prêt (20 cartes).":"⚠️ Deck invalide ou non enregistré : un deck auto sera utilisé."}</p><p class="mt">Ton jeton : <span class="tok" style="background:${skOf().g}">${skOf().e}</span> ${skOf().n} · change-le dans l’onglet 🎨 Skins</p>${o.length?`<button class="btn" id="go">Lancer le duel</button><button class="lk" id="gb">Modifier mon deck 🛠️</button>`:'<p class="mt">Ouvre d’abord un booster pour obtenir des créatures.</p>'}<button class="lk" id="rl">📖 Voir les règles</button>`;
+ $("main").innerHTML=`<h1>Duel</h1><p class="mt">Premier à 3 ★ gagne (K.O. = 1 ★, carte ★★ = 2 ★). Chaque tour : 1 énergie ⚡, des objets 🎒, des renforts au banc, puis une attaque. Certaines attaques lancent des pièces 🪙.</p><p class="mt">${dl?"✅ Deck prêt (20 cartes).":"⚠️ Deck invalide ou non enregistré : un deck auto sera utilisé."}</p><p class="mt">Ton jeton : <span class="tok" style="background:${skOf().g}">${skOf().e}</span> ${skOf().n} · change-le dans l’onglet 🎨 Skins</p>${o.length?`<button class="btn" id="go">⚔️ Contre le rival</button><button class="btn" id="g2">👥 2 joueurs (même écran)</button><button class="lk" id="gb">Modifier mon deck 🛠️</button>`:'<p class="mt">Ouvre d’abord un booster pour obtenir des créatures.</p>'}<button class="lk" id="rl">📖 Voir les règles</button>`;
  $("#rl").onclick=rules;
  if(!o.length)return;
- $("#go").onclick=duel;$("#gb").onclick=()=>{tab="dk";render()}}
+ const g2=$("#g2");if(g2)g2.onclick=duelMP;$("#go").onclick=duel;$("#gb").onclick=()=>{tab="dk";render()}}
 function battle(){G&&!G.over?board():lobby()}
 function board(){
- const m=$("main"),p=G.p,a=G.a,my=!G.t&&!G.pr&&!G.busy;
+ const m=$("main"),mp=!!G.mp,me=mp?(G.pr?G.prs:(G.t?G.a:G.p)):G.p,p=me,a=me==G.p?G.a:G.p,my=!G.pr&&!G.busy&&(mp||!G.t);
+ if(mp&&!G.over){const v=me==G.p?0:1;
+  if(G.view!==v){m.innerHTML=`<div class="pass"><div style="font-size:52px">👥</div><h2>À Joueur ${v+1} !</h2><p class="mt">Passe l’appareil à ton adversaire, puis touche pour voir ta main.</p><button class="btn" id="mpg">Voir mon tour</button></div>`;
+   $("#mpg").onclick=()=>{G.view=v;board()};return}}
  const hpcls=x=>{const pc=100*x.hp/x.c.h;return pc>50?"":pc>25?"mid":"low"};
  const badges=x=>{const b=[];
   if(x.st.burn>0)b.push(`<em class="bf">🔥${x.st.burn}</em>`);
@@ -404,7 +411,7 @@ function board(){
  const hand=p.hd.map((e,i)=>e.k=="c"
   ?`<div class="pc ${e.c.t}" data-h="${i}"><span>${e.c.img?`<img class="himg" src="${e.c.img}" alt="">`:e.c.e}</span><b>${e.c.n}</b><i style="width:${100*e.c.h/140}%"></i>PV ${e.c.h}</div>`
   :`<div class="pc itc" data-h="${i}"><span>${e.it.e}</span><b>${e.it.n}</b><u>objet</u></div>`).join("");
- const acts=G.over?`<div class="wide"><p class="mt big">${G.win?"🏆 Victoire ! +1 booster 🎁":"💀 Défaite…"}</p></div><div class="wide"><button class="btn" id="nw">Nouveau duel</button></div>`
+ const acts=G.over?`<div class="wide"><p class="mt big">${G.win?(G.mp?"🏆 Le Joueur 1 gagne !":"🏆 Victoire ! +1 booster 🎁"):(G.mp?"🏆 Le Joueur 2 gagne !":"💀 Défaite…")}</p></div><div class="wide"><button class="btn" id="nw">Nouveau duel</button></div>`
   :p.ac?`<div class="acts">${p.ac.c.ak.map((A,i)=>`<button class="btn atk" data-k="${i}" ${my?"":"disabled"}><span>${A.n}</span><small>⚡${A.cost} · ${atkTxt(A)}</small></button>`).join("")}<div class="wide"><span class="chip${G.es?" on":""}" id="ez">${p.ez?EN[p.ez]+" énergie à attacher":"pas d’énergie ce tour"}</span><button class="sbtn" id="ps">Passer</button><button class="sbtn" id="rl">❓</button></div>${G.pend||G.es?'<div class="wide"><button class="lk" id="cc">Annuler l’action en cours</button></div>':""}</div>`
   :`<div class="wide"><span class="chip on">Choisis une créature du banc ▲</span></div>`;
  m.innerHTML=`<div class="arena"><div class="foe"><div class="bar"><span class="tok" style="background:radial-gradient(circle at 35% 30%,#cfd8dc,#37474f 70%)">🤖</span><b>Rival ${a.pt}/3 ★</b><span class="mt2">main ${a.hd.length} · pioche ${a.dk.length}</span>${G.t?'<span class="turnv">▶ rival joue</span>':""}</div><div class="bnr">${a.bn.map((x,i)=>`<div class="mini" style="cursor:default"><div class="spr ${x.c.t}">${x.c.img?`<img src="${x.c.img}" alt="">`:x.c.e}</div><span class="mh">${x.c.n}</span><span class="mh">PV ${mx0(x.hp)}</span></div>`).join("")}</div><div class="actv">${z("x",a.ac)}</div></div><p class="msg">${G.m}</p><div class="actv me">${z("a",p.ac)}</div><div class="bnr">${[0,1,2].map(i=>p.bn[i]?mini(p.bn[i],i):'<div class="mini" style="cursor:default;opacity:.4">vide</div>').join("")}</div><div class="bar"><span class="tok" style="background:${skOf().g}">${skOf().e}</span><b>Toi ${p.pt}/3 ★</b>${!G.t?'<span class="turnv">▶ à toi</span>':""}<span class="mt2">retraite : clique un banc</span></div></div><div class="hd">${hand||'<div class="pc em">main vide</div>'}</div>${acts}`;
@@ -422,7 +429,7 @@ function board(){
  const cc=$("#cc");if(cc)cc.onclick=()=>{G.pend=null;G.es=0;G.m="Action annulée.";board()};
  m.querySelectorAll("[data-z]").forEach(el=>el.onclick=()=>{const k=el.dataset.z;if(k=="x")return;
   const t=k=="a"?p.ac:p.bn[+k[1]];if(!t)return;
-  if(G.pr&&k!="a"){p.ac=p.bn.splice(+k[1],1)[0];G.pr=0;G.m=`${p.ac.c.n} entre en jeu !`;endTurn();return board()}
+  if(G.pr&&k!="a"){p.ac=p.bn.splice(+k[1],1)[0];G.pr=0;G.prs=null;G.m=`${p.ac.c.n} entre en jeu !`;if((G.t?G.a:G.p)!==p)endTurn();return board()}
   if(!my)return;
   if(G.pend){applyPend(k,t);return}
   if(G.es&&p.ez&&!p.at){t.en.push(p.ez);p.ez=null;p.at=1;G.es=0;sHeal();G.m="Énergie attachée.";}
