@@ -270,14 +270,14 @@ function skTab(){const m=$("main"),cur=skOf();
  <div class="skprev"><span class="tok big" style="background:${cur.g}">${cur.e}</span><b>${cur.n}</b><span class="mt2">Victoires : ${S.w}</span></div>
  <div class="skg">${SKN.map((s,i)=>{const un=S.w>=s.need;return `<div class="skc${S.skin==i?" on":""}" data-k="${i}"><span class="skv" style="${un?`background:${s.g}`:"background:var(--bd)"}">${un?s.e:"🔒"}</span><b>${s.n}</b><span class="mt2">${un?(S.skin==i?"Équipé":"Équiper"):s.need+" victoire"+(s.need>1?"s":"")}</span></div>`}).join("")}</div><h3>🎴 Tapis de jeu</h3><p class="mt">Le fond du plateau de duel. Gagne des duels pour débloquer de nouveaux tapis !</p><div class="skg">${MAT.map((t,i)=>{const un=S.w>=t.need;return `<div class="skc${S.mat==i?" on":""}" data-m="${i}"><span class="skv" style="${un?`background:${t.g}`:"background:var(--bd)"}">${un?"🎴":"🔒"}</span><b>${t.n}</b><span class="mt2">${un?(S.mat==i?"Équipé":"Équiper"):t.need+" victoire"+(t.need>1?"s":"")}</span></div>`}).join("")}</div>`;
  m.querySelectorAll("[data-k]").forEach(el=>el.onclick=()=>{const i=+el.dataset.k;if(S.w>=SKN[i].need){S.skin=i;save();render()}else toast("Verrouillé : "+SKN[i].need+" victoires requises")});m.querySelectorAll("[data-m]").forEach(el=>el.onclick=()=>{const i=+el.dataset.m;if(S.w>=MAT[i].need){S.mat=i;save();render()}else toast("Verrouillé : "+MAT[i].need+" victoires requises")})}
-const chr=id=>!!(S.ch&&S.ch[id]);
+const chr=(id,ch)=>ch!==undefined?!!ch:!!(S.ch&&S.ch[id]>0);
 const ARN=[{n:"Léo",e:"🧢",lvl:1,g:2},{n:"Maya",e:"🎀",lvl:2,g:2},{n:"Kenzo",e:"🛹",lvl:2,g:3},{n:"Aria",e:"🎤",lvl:3,g:3},{n:"Igor",e:"⚙️",lvl:3,g:4},{n:"Salia",e:"🌸",lvl:4,g:5},{n:"Rex",e:"🦖",lvl:4,g:6},{n:"Maître Ombrax",e:"🌑",lvl:5,g:10}];
 const MQG={pk:2,win:2,duel:3,arn:1},MQT={pk:"Ouvre 2 boosters",win:"Gagne 2 duels",duel:"Joue 3 duels",arn:"Bats 1 dresseur d'Arène"};
 const today=()=>new Date().toDateString();
 function qDay(){if(S.q&&S.q.d==today())return;const ks=Object.keys(MQG).sort(()=>Math.random()-.5).slice(0,3);S.q={d:today(),ms:ks.map(k=>({k,goal:MQG[k],prog:0,done:0,g:MQG[k]+2}))};save()}
 function addProg(k,n){n=n||1;if(!S.q)return;S.q.ms.forEach(m=>{if(m.k==k&&!m.done){m.prog+=n;if(m.prog>=m.goal){m.done=1;S.g+=m.g;toast("📜 Mission accomplie : +"+m.g+" 💎")}}});save()}
 let SET="F",G=null,FIL="T";
-const mk=c=>({c,hp:c.h+(S.ch&&S.ch[c.id]?10:0),en:[],st:{burn:0,psn:0,par:0,def:0,atk:0},bst:0}),rn=a=>a[Math.floor(Math.random()*a.length)],mx0=x=>Math.max(0,x);
+const mk=(c,ch)=>({c,ch:!!ch,mh:c.h+(ch?10:0),hp:c.h+(ch?10:0),en:[],st:{burn:0,psn:0,par:0,def:0,atk:0},bst:0}),rn=a=>a[Math.floor(Math.random()*a.length)],mx0=x=>Math.max(0,x);
 let S={p:3,t:Date.now(),o:{},w:0,n:0,dk:null,m:0,skin:0,g:0,ch:{},q:null,arnW:{},dl:0,mat:0},tab="pk",team=null,st=null;
 try{const j=JSON.parse(localStorage.getItem("pocketia")||"null");if(j)S=Object.assign(S,j)}catch(e){}
 const save=()=>{try{localStorage.setItem("pocketia",JSON.stringify(S))}catch(e){}};
@@ -289,12 +289,12 @@ const $=s=>document.querySelector(s),own=()=>C.filter(c=>S.o[c.id]),ov=$("#ov");
 const AC=null;
 const snd=(f1,f2,d,ty="sine",v=.12)=>{if(S.m)return;try{const A=window.AC||new (window.AudioContext||window.webkitAudioContext)();window.AC=A;const o=A.createOscillator(),g=A.createGain();o.type=ty;o.frequency.setValueAtTime(f1,A.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(1,f2),A.currentTime+d);g.gain.setValueAtTime(v,A.currentTime);g.gain.exponentialRampToValueAtTime(.001,A.currentTime+d);o.connect(g).connect(A.destination);o.start();o.stop(A.currentTime+d)}catch(e){}};
 const sAtk=()=>snd(480,900,.12,"sawtooth"),sHit=()=>snd(170,55,.18,"square"),sHeal=()=>snd(520,1040,.22),sKO=()=>snd(320,40,.5,"sawtooth"),sWin=()=>{snd(520,520,.12);setTimeout(()=>snd(660,660,.12),140);setTimeout(()=>snd(880,880,.25),280)};
-const card=c=>`<div class="cw"><div class="card ${c.t} r${c.r}${chr(c.id)?" chr":""}"><div class="h"><span>${EN[c.t]} ${c.n}${chr(c.id)?" ✨":""}</span><span class="hp">PV ${c.h}</span></div><div class="art${c.img?" img":""}">${c.img?`<img src="${c.img}" alt="">`:`<span>${c.e}</span>`}</div><div class="aks">${c.ak.map(a=>`<div class="al"><span class="cst">${"●".repeat(a.cost)}</span><span>${a.n}</span>${a.fx?`<span class="fxi">${FXT[a.fx]}</span>`:""}<b>${a.var=="mult"?a.d+"×"+a.v:a.d}${a.var!="flat"&&a.var!="mult"?VT[a.var]||"":""}</b></div>`).join("")}</div><div class="rr">${RS[c.r-1]}</div></div></div>`;
+const card=(c,ch)=>{const k=chr(c.id,ch);return `<div class="cw"><div class="card ${c.t} r${c.r}${k?" chr":""}"><div class="h"><span>${EN[c.t]} ${c.n}${k?" ✨":""}</span><span class="hp">PV ${c.h}</span></div><div class="art${c.img?" img":""}">${c.img?`<img src="${c.img}" alt="">`:`<span>${c.e}</span>`}</div><div class="aks">${c.ak.map(a=>`<div class="al"><span class="cst">${"●".repeat(a.cost)}</span><span>${a.n}</span>${a.fx?`<span class="fxi">${FXT[a.fx]}</span>`:""}<b>${a.var=="mult"?a.d+"×"+a.v:a.d}${a.var!="flat"&&a.var!="mult"?VT[a.var]||"":""}</b></div>`).join("")}</div><div class="rr">${RS[c.r-1]}</div></div></div>`}
 const itemCard=it=>`<div class="cw"><div class="card itc2"><div class="h"><span>🎒 ${it.n}</span></div><div class="art"><span>${it.e}</span></div><div class="al2">${it.d}</div><div class="rr">OBJET</div></div></div>`;
 const trCard=tr=>`<div class="cw"><div class="card itc2"><div class="h"><span>${tr.e} ${tr.n}</span></div><div class="art img"><img src="${tr.img}" alt=""></div><div class="al2">${tr.d}</div><div class="rr">DRESSEUR</div></div></div>`;
 function toast(s){const t=$("#tst");t.textContent=s;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),1800)}
 function deckList(){if(!S.dk||!S.dk.c)return null;const cs=[];let cre=0;
- for(const[id,q]of S.dk.c){const c=C.find(x=>x.id==id);if(!c||!S.o[id]||q>MAXQ||q>S.o[id])return null;for(let k=0;k<q;k++)cs.push({k:"c",c});cre+=q}
+ for(const[id,q]of S.dk.c){const c=C.find(x=>x.id==id);if(!c||!S.o[id]||q>MAXQ||q>S.o[id])return null;const cl=Math.min(S.ch&&S.ch[id]||0,q);for(let k=0;k<q;k++)cs.push({k:"c",c,ch:k<cl});cre+=q}
  for(const[id,q]of S.dk.it){const it=IT.find(x=>x.id==id);if(!it||q>MAXQ)return null;for(let k=0;k<q;k++)cs.push({k:"it",it})}
  for(const[id,q]of S.dk.tr||[]){const tr=TR.find(x=>x.id==id);if(!tr||q>MAXQ)return null;for(let k=0;k<q;k++)cs.push({k:"tr",tr})}
  return cs.length==20&&cre>=MINC?cs:null}
@@ -315,7 +315,7 @@ function side(list){const dk=[...list].sort(()=>Math.random()-.5);
  let bi=s.hd.findIndex(e=>e.k=="c");
  while(bi<0&&s.dk.length){s.hd.push(s.dk.pop());bi=s.hd.findIndex(e=>e.k=="c")}
  if(bi<0)bi=0;
- s.ac=mk((s.hd[bi]&&s.hd[bi].k=="c"?s.hd[bi].c:C[0]));s.hd.splice(bi,1);
+ s.ac=mk((s.hd[bi]&&s.hd[bi].k=="c"?s.hd[bi].c:C[0]),s.hd[bi]&&s.hd[bi].k=="c"?s.hd[bi].ch:false);s.hd.splice(bi,1);
  s.ty=[...new Set(list.filter(e=>e.k=="c").map(e=>e.c.t))];
  return s}
 function duel(ar){S.dl++;addProg("duel");save();G={p:side(myDeck()),a:side(aiDeck(ar!=null?ARN[ar].lvl:null)),ar,t:0,m:"À toi ! Pose des créatures depuis la main, attache l’énergie ⚡, joue des objets 🎒, puis attaque.",es:0,pr:0,n:0,over:0,win:0,busy:0,pend:null};begin();board()}
@@ -358,8 +358,8 @@ function applyFx(a,x,y,fx,dm,w){
  else if(fx=="par")y.st.par=2;
  else if(fx=="def")x.st.def=3;
  else if(fx=="atk")x.st.atk=2;
- else if(fx=="heal"){const h=Math.min(x.c.h-x.hp,25);x.hp+=h;if(h>0){sHeal();float($(zid(w)).querySelector(".spr"),"+25","heal")}}
- else if(fx=="drain"){const h=Math.round(dm*.5);x.hp=Math.min(x.c.h,x.hp+h);sHeal();float($(zid(w)).querySelector(".spr"),"+"+h,"heal")}
+ else if(fx=="heal"){const h=Math.min((x.mh||x.c.h)-x.hp,25);x.hp+=h;if(h>0){sHeal();float($(zid(w)).querySelector(".spr"),"+25","heal")}}
+ else if(fx=="drain"){const h=Math.round(dm*.5);x.hp=Math.min(x.mh||x.c.h,x.hp+h);sHeal();float($(zid(w)).querySelector(".spr"),"+"+h,"heal")}
  else if(fx=="draw"){for(let k=0;k<2&&a.dk.length;k++)a.hd.push(a.dk.pop())}}
 function coinAnim(n){return new Promise(res=>{const d=document.createElement("div");d.id="coinfx";
  d.innerHTML=`<div class="cin">🪙</div><p class="ct">Lance ${n>1?n+" pièces":"une pièce"}…</p>`;
@@ -382,7 +382,7 @@ async function atk(w,i){const a=w?G.a:G.p,d=w?G.p:G.a,x=a.ac,y=d.ac,A=x.c.ak[i];
  else if(A.var=="scale")dm=A.d+A.v*Math.max(0,x.en.length-A.cost);
  else dm=A.d;
  if(fail){G.m=`🪙 Aucune Face pour ${A.n} : l’attaque échoue !`;G.busy=0;endTurn();board();return}
- const wk=WK[y.c.t]==x.c.t;if(wk)dm+=20;if(chr(x.c.id))dm=Math.round(dm*1.1);
+ const wk=WK[y.c.t]==x.c.t;if(wk)dm+=20;if(chr(x.c.id,x.ch))dm=Math.round(dm*1.1);
  if(x.st.atk>0)dm=Math.round(dm*1.3);
  if(y.st.def>0)dm=Math.round(dm*.7);
  await animAtk(w,dm,wk,A.fx,A.var=="mult"?A.v:1);
@@ -405,12 +405,12 @@ async function atk(w,i){const a=w?G.a:G.p,d=w?G.p:G.a,x=a.ac,y=d.ac,A=x.c.ak[i];
 function applyPend(k,t){const it=G.pend;G.pend=null;
  if(it.k=="boost"){if(k!="a"){G.pend=it;G.m="Le Poing Boost cible ta créature active."}else{t.bst+=30;G.m="💪 Prochaine attaque : +30 dégâts !"}}
  else if(it.k=="en2"){t.en.push(rn(TY),rn(TY));sHeal();G.m="🔋 Double énergie attachée !"}
- else if(it.k=="heal"){const h=Math.min(t.c.h-t.hp,it.v);t.hp+=h;if(h>0)sHeal();G.m=`${it.e} ${it.n} : +${h} PV sur ${t.c.n}.`}
- else if(it.k=="cure"){const h=Math.min(t.c.h-t.hp,30);t.hp+=h;t.st.burn=0;t.st.psn=0;if(h>0)sHeal();G.m=`💊 Altérations retirées et +${h} PV sur ${t.c.n}.`}
+ else if(it.k=="heal"){const h=Math.min((t.mh||t.c.h)-t.hp,it.v);t.hp+=h;if(h>0)sHeal();G.m=`${it.e} ${it.n} : +${h} PV sur ${t.c.n}.`}
+ else if(it.k=="cure"){const h=Math.min((t.mh||t.c.h)-t.hp,30);t.hp+=h;t.st.burn=0;t.st.psn=0;if(h>0)sHeal();G.m=`💊 Altérations retirées et +${h} PV sur ${t.c.n}.`}
  board()}
 function useAIItems(s){const take=id=>{const i=s.hd.findIndex(e=>e.k=="it"&&e.it.id==id);return i<0?null:(s.hd.splice(i,1)[0].it)};
  let u="";
- if(s.ac.hp<s.ac.c.h*.45){const it=take(1)||take(0);if(it){s.ac.hp=Math.min(s.ac.c.h,s.ac.hp+it.v);u+=" 💊"}}
+ if(s.ac.hp<(s.ac.mh||s.ac.c.h)*.45){const it=take(1)||take(0);if(it){s.ac.hp=Math.min(s.ac.mh||s.ac.c.h,s.ac.hp+it.v);u+=" 💊"}}
  if(s.ac.st.burn||s.ac.st.psn){const it=take(2);if(it){s.ac.st.burn=0;s.ac.st.psn=0;s.ac.hp=Math.min(s.ac.c.h,s.ac.hp+30);u+=" 💊"}}
  if(s.hd.length<4){const it=take(5);if(it){for(let k=0;k<2&&s.dk.length;k++)s.hd.push(s.dk.pop());u+=" 📜"}}
  const ok2=s.ac.en.length>=s.ac.c.ak[1].cost;
@@ -475,7 +475,7 @@ function board(){
  if(mp&&!G.over){const v=me==G.p?0:1;
   if(G.view!==v){m.innerHTML=`<div class="pass"><div style="font-size:52px">👥</div><h2>À Joueur ${v+1} !</h2><p class="mt">Passe l’appareil à ton adversaire, puis touche pour voir ta main.</p><button class="btn" id="mpg">Voir mon tour</button></div>`;
    $("#mpg").onclick=()=>{G.view=v;board()};return}}
- const hpcls=x=>{const pc=100*x.hp/x.c.h;return pc>50?"":pc>25?"mid":"low"};
+ const hpcls=x=>{const pc=100*x.hp/(x.mh||x.c.h);return pc>50?"":pc>25?"mid":"low"};
  const badges=x=>{const b=[];
   if(x.st.burn>0)b.push(`<em class="bf">🔥${x.st.burn}</em>`);
   if(x.st.psn>0)b.push(`<em class="pf">☠️${x.st.psn}</em>`);
@@ -484,20 +484,20 @@ function board(){
   if(x.st.atk>0)b.push(`<em class="af">💪</em>`);
   if(x.bst>0)b.push(`<em class="af">⬆️${x.bst}</em>`);
   return b.length?`<div class="sts">${b.join("")}</div>`:""};
- const inf=(x,foe)=>`<div class="inf"><div class="nm"><span>${x.c.e}</span><b>${x.c.n}</b><span class="rr2">${RS[x.c.r-1]}</span></div><div class="hpb"><i class="${hpcls(x)}" style="width:${100*mx0(x.hp)/x.c.h}%"></i><span>${mx0(x.hp)} / ${x.c.h} PV</span></div><div class="pips"><span class="lb">Énergie</span>${x.en.map(e=>`<u class="ep ${e}">${EN[e]}</u>`).join("")||'<u class="ep no">0</u>'}</div>${badges(x)}<div class="mt2" style="text-align:center">${foe?"faible contre "+T[WK[x.c.t]]:""}</div></div>`;
- const z=(k,x)=>x?`<div class="pz${G.pend||G.es||G.pr?" tgt":""}" id="${k=="x"?"zx":"za"}" data-z="${k}"><div class="spr ${x.c.t}${chr(x.c.id)?" chr":""}">${x.c.img?`<img src="${x.c.img}" alt="">`:x.c.e}</div>${inf(x,k=="x")}</div>`:`<div class="pz em" data-z="${k}"><div class="spr em">➕</div><div class="inf em">emplacement libre</div></div>`;
- const mini=(x,i)=>`<div class="mini${G.pr||G.pend||G.es?" tgt":""}" data-z="b${i}"><div class="spr ${x.c.t}${chr(x.c.id)?" chr":""}">${x.c.img?`<img src="${x.c.img}" alt="">`:x.c.e}</div><span class="mh">${x.c.n}</span><span class="mh">PV ${mx0(x.hp)} ${x.en.map(e=>EN[e]).join("")}</span>${x.st.burn||x.st.psn?`<span class="mst">${x.st.burn?"🔥":""}${x.st.psn?"☠️":""}</span>`:""}</div>`;
+ const inf=(x,foe)=>`<div class="inf"><div class="nm"><span>${x.c.e}</span><b>${x.c.n}</b><span class="rr2">${RS[x.c.r-1]}</span></div><div class="hpb"><i class="${hpcls(x)}" style="width:${100*mx0(x.hp)/(x.mh||x.c.h)}%"></i><span>${mx0(x.hp)} / ${x.mh||x.c.h} PV</span></div><div class="pips"><span class="lb">Énergie</span>${x.en.map(e=>`<u class="ep ${e}">${EN[e]}</u>`).join("")||'<u class="ep no">0</u>'}</div>${badges(x)}<div class="mt2" style="text-align:center">${foe?"faible contre "+T[WK[x.c.t]]:""}</div></div>`;
+ const z=(k,x)=>x?`<div class="pz${G.pend||G.es||G.pr?" tgt":""}" id="${k=="x"?"zx":"za"}" data-z="${k}"><div class="spr ${x.c.t}${chr(x.c.id,x.ch)?" chr":""}">${x.c.img?`<img src="${x.c.img}" alt="">`:x.c.e}</div>${inf(x,k=="x")}</div>`:`<div class="pz em" data-z="${k}"><div class="spr em">➕</div><div class="inf em">emplacement libre</div></div>`;
+ const mini=(x,i)=>`<div class="mini${G.pr||G.pend||G.es?" tgt":""}" data-z="b${i}"><div class="spr ${x.c.t}${chr(x.c.id,x.ch)?" chr":""}">${x.c.img?`<img src="${x.c.img}" alt="">`:x.c.e}</div><span class="mh">${x.c.n}</span><span class="mh">PV ${mx0(x.hp)} ${x.en.map(e=>EN[e]).join("")}</span>${x.st.burn||x.st.psn?`<span class="mst">${x.st.burn?"🔥":""}${x.st.psn?"☠️":""}</span>`:""}</div>`;
  const hand=p.hd.map((e,i)=>e.k=="c"
-  ?`<div class="pc ${e.c.t}${chr(e.c.id)?" chr":""}" data-h="${i}"><span>${e.c.img?`<img class="himg" src="${e.c.img}" alt="">`:e.c.e}</span><b>${e.c.n}</b><i style="width:${100*e.c.h/140}%"></i>PV ${e.c.h}</div>`
+  ?`<div class="pc ${e.c.t}${chr(e.c.id,e.ch)?" chr":""}" data-h="${i}"><span>${e.c.img?`<img class="himg" src="${e.c.img}" alt="">`:e.c.e}</span><b>${e.c.n}</b><i style="width:${100*e.c.h/140}%"></i>PV ${e.c.h}</div>`
   :e.k=="tr"?`<div class="pc itc" data-h="${i}"><span>${e.tr.e}</span><b>${e.tr.n}</b><u>dresseur</u></div>`
   :`<div class="pc itc" data-h="${i}"><span>${e.it.e}</span><b>${e.it.n}</b><u>objet</u></div>`).join("");
  const acts=G.over?`<div class="wide"><p class="mt big">${G.win?(G.mp?"🏆 Le Joueur 1 gagne !":`🏆 Victoire !${G.arnw?` +${G.arnw} 💎 et +1 booster 🎁`:" +1 booster 🎁"}`):(G.mp?"🏆 Le Joueur 2 gagne !":"💀 Défaite…")}</p></div><div class="wide"><button class="btn" id="nw">Nouveau duel</button></div>`
   :p.ac?`<div class="acts">${p.ac.c.ak.map((A,i)=>`<button class="btn atk" data-k="${i}" ${my?"":"disabled"}><span>${A.n}</span><small>⚡${A.cost} · ${atkTxt(A)}</small></button>`).join("")}<div class="wide"><span class="chip${G.es?" on":""}" id="ez">${p.ez?EN[p.ez]+" énergie à attacher":"pas d’énergie ce tour"}</span><button class="sbtn" id="ps">Passer</button><button class="sbtn" id="rl">❓</button></div>${G.pend||G.es?'<div class="wide"><button class="lk" id="cc">Annuler l’action en cours</button></div>':""}</div>`
   :`<div class="wide"><span class="chip on">Choisis une créature du banc ▲</span></div>`;
- m.innerHTML=`<div class="arena" style="background:${(MAT[S.mat]||MAT[0]).g}"><div class="foe"><div class="bar"><span class="tok" style="background:radial-gradient(circle at 35% 30%,#cfd8dc,#37474f 70%)">🤖</span><b>Rival ${a.pt}/3 ★</b><span class="mt2">main ${a.hd.length} · pioche ${a.dk.length}</span>${G.t?'<span class="turnv">▶ rival joue</span>':""}</div><div class="bnr">${a.bn.map((x,i)=>`<div class="mini" style="cursor:default"><div class="spr ${x.c.t}${chr(x.c.id)?" chr":""}">${x.c.img?`<img src="${x.c.img}" alt="">`:x.c.e}</div><span class="mh">${x.c.n}</span><span class="mh">PV ${mx0(x.hp)}</span></div>`).join("")}</div><div class="actv">${z("x",a.ac)}</div></div><p class="msg">${G.m}</p><div class="actv me">${z("a",p.ac)}</div><div class="bnr">${[0,1,2].map(i=>p.bn[i]?mini(p.bn[i],i):'<div class="mini" style="cursor:default;opacity:.4">vide</div>').join("")}</div><div class="bar"><span class="tok" style="background:${skOf().g}">${skOf().e}</span><b>Toi ${p.pt}/3 ★</b>${!G.t?'<span class="turnv">▶ à toi</span>':""}<span class="mt2">retraite : clique un banc</span></div></div><div class="hd">${hand||'<div class="pc em">main vide</div>'}</div>${acts}`;
+ m.innerHTML=`<div class="arena" style="background:${(MAT[S.mat]||MAT[0]).g}"><div class="foe"><div class="bar"><span class="tok" style="background:radial-gradient(circle at 35% 30%,#cfd8dc,#37474f 70%)">🤖</span><b>Rival ${a.pt}/3 ★</b><span class="mt2">main ${a.hd.length} · pioche ${a.dk.length}</span>${G.t?'<span class="turnv">▶ rival joue</span>':""}</div><div class="bnr">${a.bn.map((x,i)=>`<div class="mini" style="cursor:default"><div class="spr ${x.c.t}${chr(x.c.id,x.ch)?" chr":""}">${x.c.img?`<img src="${x.c.img}" alt="">`:x.c.e}</div><span class="mh">${x.c.n}</span><span class="mh">PV ${mx0(x.hp)}</span></div>`).join("")}</div><div class="actv">${z("x",a.ac)}</div></div><p class="msg">${G.m}</p><div class="actv me">${z("a",p.ac)}</div><div class="bnr">${[0,1,2].map(i=>p.bn[i]?mini(p.bn[i],i):'<div class="mini" style="cursor:default;opacity:.4">vide</div>').join("")}</div><div class="bar"><span class="tok" style="background:${skOf().g}">${skOf().e}</span><b>Toi ${p.pt}/3 ★</b>${!G.t?'<span class="turnv">▶ à toi</span>':""}<span class="mt2">retraite : clique un banc</span></div></div><div class="hd">${hand||'<div class="pc em">main vide</div>'}</div>${acts}`;
  if(G.over){$("#nw").onclick=()=>{G=null;render()};return}
  m.querySelectorAll("[data-h]").forEach(el=>el.onclick=()=>{if(!my)return;const i=+el.dataset.h,e=p.hd[i];
-  if(e.k=="c"){if(p.bn.length<3){p.hd.splice(i,1);p.bn.push(mk(e.c));G.m=`${e.c.n} rejoint le banc.`}else G.m="Le banc est plein (3 max).";board()}
+  if(e.k=="c"){if(p.bn.length<3){p.hd.splice(i,1);p.bn.push(mk(e.c,e.ch));G.m=`${e.c.n} rejoint le banc.`}else G.m="Le banc est plein (3 max).";board()}
   else if(e.k=="tr"){const tr=e.tr;show(`<div class="itv"><img class="tiv" src="${tr.img}" alt=""><b>${tr.e} ${tr.n}</b><p>${tr.d}</p></div><button class="btn" id="ui">Utiliser</button><button class="lk" id="uc">Annuler</button>`);
    $("#ui").onclick=()=>{p.hd.splice(i,1);useTr(p,tr);hide()};
    $("#uc").onclick=hide}
@@ -560,9 +560,9 @@ function dkTab(){const m=$("main");if(!S.dk)S.dk={c:[],it:[],tr:[]};if(!S.dk.tr)
   render()};
  $("#sv").onclick=()=>{if(!valid)return;save();toast("Deck enregistré !")}}
 function prTab(){const m=$("main"),bd=badges();
- m.innerHTML=`<h1>Profil</h1><div class="pgrid"><div class="pstat"><b>💎 ${S.g}</b><span>Gemmes</span></div><div class="pstat"><b>${S.w}</b><span>Victoires</span></div><div class="pstat"><b>${S.dl}</b><span>Duels joués</span></div><div class="pstat"><b>${S.n}</b><span>Boosters</span></div><div class="pstat"><b>${own().length}/${C.length}</b><span>Collection</span></div><div class="pstat"><b>${Object.keys(S.ch).length}</b><span>Chromatiques</span></div><div class="pstat"><b>${Object.keys(S.arnW).length}/8</b><span>Arène</span></div><div class="pstat"><b>${S.q.ms.filter(x=>x.done).length}/3</b><span>Missions</span></div></div><h3>🏅 Badges</h3><div class="bads">${bd.map(b=>`<div class="badge${b[1]?"":" off"}"><b>${b[0]}</b><span>${b[2]}</span></div>`).join("")}</div><button class="lk" id="rs2">Réinitialiser la partie</button>`;
+ m.innerHTML=`<h1>Profil</h1><div class="pgrid"><div class="pstat"><b>💎 ${S.g}</b><span>Gemmes</span></div><div class="pstat"><b>${S.w}</b><span>Victoires</span></div><div class="pstat"><b>${S.dl}</b><span>Duels joués</span></div><div class="pstat"><b>${S.n}</b><span>Boosters</span></div><div class="pstat"><b>${own().length}/${C.length}</b><span>Collection</span></div><div class="pstat"><b>${Object.keys(S.ch).filter(k=>S.ch[k]>0).length}</b><span>Chromatiques</span></div><div class="pstat"><b>${Object.keys(S.arnW).length}/8</b><span>Arène</span></div><div class="pstat"><b>${S.q.ms.filter(x=>x.done).length}/3</b><span>Missions</span></div></div><h3>🏅 Badges</h3><div class="bads">${bd.map(b=>`<div class="badge${b[1]?"":" off"}"><b>${b[0]}</b><span>${b[2]}</span></div>`).join("")}</div><button class="lk" id="rs2">Réinitialiser la partie</button>`;
  $("#rs2").onclick=e=>{if(!e.target.dataset.s){e.target.dataset.s=1;e.target.textContent="Clique encore pour tout effacer"}else{S={p:3,t:Date.now(),o:{},w:0,n:0,dk:null,m:0,skin:0,g:0,ch:{},q:null,arnW:{},dl:0,mat:0};save();render()}}}
-function badges(){return [["🥇",S.dl>=1,"Premier duel"],["🗡️",S.w>=5,"5 victoires"],["🏅",S.w>=15,"15 victoires"],["🃏",own().length>=10,"10 créatures"],["📚",own().length>=25,"25 créatures"],["👑",own().length>=C.length,"Collection complète"],["✨",Object.keys(S.ch).length>=1,"1re chromatique"],["🌈",TY.every(t=>own().some(c=>c.t==t)),"Tous les types"],["🛡️",Object.keys(S.arnW).length>=4,"4 dresseurs d'Arène"],["🏆",Object.keys(S.arnW).length>=8,"Arène parfaite"],["💎",S.g>=30,"30 gemmes"],["📜",S.q.ms.some(x=>x.done),"Mission réussie"]]}
+function badges(){return [["🥇",S.dl>=1,"Premier duel"],["🗡️",S.w>=5,"5 victoires"],["🏅",S.w>=15,"15 victoires"],["🃏",own().length>=10,"10 créatures"],["📚",own().length>=25,"25 créatures"],["👑",own().length>=C.length,"Collection complète"],["✨",Object.keys(S.ch).some(k=>S.ch[k]>0),"1re chromatique"],["🌈",TY.every(t=>own().some(c=>c.t==t)),"Tous les types"],["🛡️",Object.keys(S.arnW).length>=4,"4 dresseurs d'Arène"],["🏆",Object.keys(S.arnW).length>=8,"Arène parfaite"],["💎",S.g>=30,"30 gemmes"],["📜",S.q.ms.some(x=>x.done),"Mission réussie"]]}
 function render(){qDay();
  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.t==tab));
  const m=$("main");
@@ -588,16 +588,16 @@ function openPack(ty,prem){
  if(prem){const cost=prem=="prem"?5:3;if(S.g<cost){toast("Pas assez de gemmes 💎");return}S.g-=cost}else{if(S.p<1)return;if(S.p>=MAX)S.t=Date.now();S.p--}
  S.n++;
  const W=prem=="prem"?[[0,25,40,25,10],[0,25,40,25,10]]:prem=="ty"?[[0,60,28,9,3],[0,60,28,9,3]]:[[58,26,10,4.5,1.5],[0,60,28,9,3]];
- const cs=[0,0,0,0,1].map(i=>roll(W[i],ty,"pk")),chm=cs.map(()=>Math.random()<.05),nw=cs.map((c,i)=>{if(chm[i])S.ch[c.id]=1;const n=!S.o[c.id];S.o[c.id]=(S.o[c.id]||0)+1;return n});addProg("pk");save();
+ const cs=[0,0,0,0,1].map(i=>roll(W[i],ty,"pk")),chm=cs.map(()=>Math.random()<.05),nw=cs.map((c,i)=>{if(chm[i])S.ch[c.id]=(S.ch[c.id]||0)+1;const n=!S.o[c.id];S.o[c.id]=(S.o[c.id]||0)+1;return n});addProg("pk");save();
  show(`<div class="foil" id="f" style="width:190px;touch-action:none;background:${SB(ty)}">${EN[ty]}</div><p>Fais glisser ton doigt sur le haut du booster pour le découper</p>`);
  const f=$("#f");let x0=null,y0=0;
  f.onpointerdown=e=>{if(e.clientY-f.getBoundingClientRect().top<f.offsetHeight*.35){x0=e.clientX;y0=e.clientY}};
  f.onpointermove=e=>{if(x0!==null&&Math.abs(e.clientX-x0)>90&&Math.abs(e.clientY-y0)<50){x0=null;f.classList.add("rip");setTimeout(()=>rev(0),600)}};
  function rev(i){
   if(i>=cs.length)return sum();let on=0;
-  show(`<div class="stage"><div class="flip" id="fl"><div class="cw face"><div class="card back">✦</div></div><div class="front face">${card(cs[i])}${nw[i]?'<span class="new">NOUVELLE CARTE</span>':""}${chm[i]?'<span class="new chrn">✨ CHROMATIQUE ✨</span>':""}</div></div></div><p id="hn">Touche pour révéler (${i+1}/${cs.length})</p>`,()=>{if(!on){on=1;$("#fl").classList.add("on");$("#hn").textContent=i<cs.length-1?"Touche pour continuer":"Touche pour voir le résumé"}else rev(i+1)})
+  show(`<div class="stage"><div class="flip" id="fl"><div class="cw face"><div class="card back">✦</div></div><div class="front face">${card(cs[i],chm[i])}${nw[i]?'<span class="new">NOUVELLE CARTE</span>':""}${chm[i]?'<span class="new chrn">✨ CHROMATIQUE ✨</span>':""}</div></div></div><p id="hn">Touche pour révéler (${i+1}/${cs.length})</p>`,()=>{if(!on){on=1;$("#fl").classList.add("on");$("#hn").textContent=i<cs.length-1?"Touche pour continuer":"Touche pour voir le résumé"}else rev(i+1)})
  }
- function sum(){show(`<h2>Ton tirage</h2><div class="sum">${cs.map((c,i)=>`<div class="sw">${card(c)}${nw[i]?'<span class="new">NEW</span>':""}${chm[i]?'<span class="new chrn">✨</span>':""}</div>`).join("")}</div><button class="btn" onclick="hide()">Terminer</button>`)}
+ function sum(){show(`<h2>Ton tirage</h2><div class="sum">${cs.map((c,i)=>`<div class="sw">${card(c,chm[i])}${nw[i]?'<span class="new">NEW</span>':""}${chm[i]?'<span class="new chrn">✨</span>':""}</div>`).join("")}</div><button class="btn" onclick="hide()">Terminer</button>`)}
 }
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{tab=b.dataset.t;render()});
 render();setInterval(tick,1000);
