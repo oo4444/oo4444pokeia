@@ -443,7 +443,7 @@ function koOf(s){const o=s==G.p?G.a:G.p,pts=s.ac.c.r>3?2:1;
  return false}
 function begin(){G.n++;if(G.on)G.tm=90;const s=G.t?G.a:G.p;
  if(s.dk.length)s.hd.push(s.dk.pop());
- s.at=0;s.free=false;s.ez=G.n>1?rn(s.ty):null;
+ s.at=0;s.free=false;s.ez=G.n>1?drn(s.ty):null;
  const x=s.ac;
  if(x){let dm=0;const msgs=[];
   if(x.st.burn>0){dm+=10;x.st.burn--;msgs.push("🔥 brûlure −10")}
@@ -519,9 +519,9 @@ async function atk(w,i){const a=w?G.a:G.p,d=w?G.p:G.a,x=a.ac,y=d.ac,A=x.c.ak[i];
  endTurn();board()}
 function applyPend(k,t){const it=G.pend;G.pend=null;
  if(it.k=="boost"){if(k!="a"){G.pend=it;G.m="Le Poing Boost cible ta créature active."}else{t.bst+=30;G.m="💪 Prochaine attaque : +30 dégâts !"}}
- else if(it.k=="en2"){t.en.push(rn(TY),rn(TY));sHeal();G.m="🔋 Double énergie attachée !"}
+ else if(it.k=="en2"){t.en.push(drn(TY),drn(TY));sHeal();G.m="🔋 Double énergie attachée !"}
  else if(it.k=="fxheal"){t.hp=t.mh||t.c.h;sHeal();G.m=`🧪 ${t.c.n} est soigné entièrement !`}
- else if(it.k=="en3"){t.en.push(rn(TY),rn(TY),rn(TY));sHeal();G.m="🔋 3 énergies attachées !"}
+ else if(it.k=="en3"){t.en.push(drn(TY),drn(TY),drn(TY));sHeal();G.m="🔋 3 énergies attachées !"}
  else if(it.k=="heal"){const h=Math.min((t.mh||t.c.h)-t.hp,it.v);t.hp+=h;if(h>0)sHeal();G.m=`${it.e} ${it.n} : +${h} PV sur ${t.c.n}.`}
  else if(it.k=="cure"){const h=Math.min((t.mh||t.c.h)-t.hp,30);t.hp+=h;t.st.burn=0;t.st.psn=0;if(h>0)sHeal();G.m=`💊 Altérations retirées et +${h} PV sur ${t.c.n}.`}
  board()}
@@ -539,7 +539,7 @@ function useTr(s,tr){const o=s==G.p?G.a:G.p;
  else if(tr.k=="search"){const cs=s.dk.filter(e=>e.k=="c");if(cs.length){const e=cs[Math.floor(DRNG()*cs.length)];s.dk.splice(s.dk.indexOf(e),1);s.hd.push(e);G.m=`🧭 ${tr.n} : ${e.c.n} rejoint la main !`}else G.m=`🧭 ${tr.n} : plus de créature dans la pioche.`}
  else if(tr.k=="fullheal"){if(s.ac){s.ac.hp=s.ac.c.h;sHeal();G.m=`💚 ${tr.n} : ${s.ac.c.n} est soigné entièrement !`}}
  else if(tr.k=="tsp"){if(o.ac){o.ac.st.par=2;G.m=`🌟 ${tr.n} : ${o.ac.c.n} est paralysé (2 tours) !`}}
- else if(tr.k=="en1"){if(s.ac){s.ac.en.push(rn(TY));sHeal();G.m=`🔧 ${tr.n} : 1 énergie attachée à ${s.ac.c.n}.`}}
+ else if(tr.k=="en1"){if(s.ac){s.ac.en.push(drn(TY));sHeal();G.m=`🔧 ${tr.n} : 1 énergie attachée à ${s.ac.c.n}.`}}
  else if(tr.k=="steal"){if(o.hd.length){const i=Math.floor(DRNG()*o.hd.length),e=o.hd.splice(i,1)[0];G.m=`🎭 ${tr.n} : l’adversaire défausse ${e.k=="c"?e.c.n:(e.it?e.it.n:e.tr.n)}.`}else G.m=`🎭 ${tr.n} : main adverse vide.`}}
 function useAITrainers(s){const take=k=>{const i=s.hd.findIndex(e=>e.k=="tr"&&e.tr.k==k);return i<0?null:(s.hd.splice(i,1)[0].tr)};
  let u="";
