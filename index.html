@@ -357,7 +357,8 @@ function netRecv(d){if(!d||typeof d!="object")return;
  else if(d.t=="pr")actPr(d.z,1);
  else if(d.t=="pt"){const s=G.a,t=d.z=="a"?s.ac:s.bn[+d.z[1]];if(t)applyPend(d.z,t)}
  else if(d.t=="pass"){G.m="L'adversaire passe son tour.";endTurn();board()}
- else if(d.t=="cc"){G.pend=null;G.m="L'adversaire a annulé son action.";board()}}
+ else if(d.t=="cc"){G.pend=null;G.m="L'adversaire a annulé son action.";board()}
+ else if(d.t=="ff"){G.over=1;G.win=1;G.m="🏳️ L'adversaire abandonne : victoire !";S.rw=(S.rw||0)+1;S.rp=(S.rp||1000)+25;save();board()}}
 function netQuick(){if(typeof Peer=="undefined"||typeof mqtt=="undefined"){toast("⚠️ Module réseau non chargé — recharge la page (Ctrl+Maj+R).");return}
  if(net)return;net={host:-1,code:"QUICK"};qSeen=[];
  netWaitQuick();
@@ -380,6 +381,11 @@ function qPub(){if(!mq||!net||net.host!=-1)return;try{mq.publish("pocketia-oo444
 function qStop(){if(qTimer){clearTimeout(qTimer);qTimer=null}try{if(mq&&net&&net.myid)mq.publish("pocketia-oo4444-lobby",JSON.stringify({t:"seek",id:net.myid,ts:0}));if(mq)mq.end(true)}catch(e){}mq=null}
 function netCancel(){qStop();netClose()}
 function netWaitQuick(){show(`<div class="itv"><b>🔍 Recherche d'un adversaire…</b><p class="mt" id="nwmsg">Ton annonce est publiée : tout joueur du monde qui lance une recherche en ce moment peut te trouver !</p></div><button class="lk" id="ncx">Annuler</button>`,netCancel);const nx=$("#ncx");if(nx)nx.onclick=netCancel}
+function surrender(){if(!G||G.over||G.busy)return;
+ if(typeof confirm=="function"&&!confirm("Abandonner le duel ?"))return;
+ if(G.on){netSend({t:"ff"});G.over=1;G.win=0;G.m="🏳️ Tu abandonnes le duel.";S.rl=(S.rl||0)+1;S.rp=Math.max(800,(S.rp||1000)-18);S.hist=S.hist||[];S.hist.push(0);if(S.hist.length>60)S.hist.shift();gxp(3);save();board();return}
+ if(G.mp){G.over=1;G.win=G.view==1?1:0;G.m="🏳️ Abandon !";board();return}
+ G.over=1;G.win=0;G.m="🏳️ Tu abandonnes le duel…";S.hist=S.hist||[];S.hist.push(0);if(S.hist.length>60)S.hist.shift();gxp(3);save();board()}
 const today=()=>new Date().toDateString();
 function qDay(){if(S.q&&S.q.d==today())return;const ks=Object.keys(MQG).sort(()=>Math.random()-.5).slice(0,3);S.q={d:today(),ms:ks.map(k=>({k,goal:MQG[k],prog:0,done:0,g:MQG[k]+2}))};save()}
 function addProg(k,n){n=n||1;if(!S.q)return;S.q.ms.forEach(m=>{if(m.k==k&&!m.done){m.prog+=n;if(m.prog>=m.goal){m.done=1;S.g+=m.g;gxp(5);toast("📜 Mission accomplie : +"+m.g+" 💎")}}});if(S.qw&&S.qw.k==k&&!S.qw.done){S.qw.prog+=n;if(S.qw.prog>=WQG[S.qw.k]){S.qw.done=1;S.g+=WKR;gxp(10);toast("📜 Mission hebdo terminée : +"+WKR+" 💎")}}save()}
@@ -611,8 +617,8 @@ function board(){
   :e.k=="tr"?`<div class="pc itc" data-h="${i}"><span>${e.tr.e}</span><b>${e.tr.n}</b><u>dresseur</u></div>`
   :`<div class="pc itc" data-h="${i}"><span>${e.it.e}</span><b>${e.it.n}</b><u>objet</u></div>`).join("");
  const acts=G.over?`<div class="wide"><p class="mt big">${G.win?(G.mp?"🏆 Le Joueur 1 gagne !":`🏆 Victoire !${G.arnw?` +${G.arnw} 💎 et +1 booster 🎁`:" +1 booster 🎁"}`):(G.mp?"🏆 Le Joueur 2 gagne !":"💀 Défaite…")}</p></div><div class="wide"><button class="btn" id="nw">Nouveau duel</button></div>`
-  :p.ac?`<div class="acts">${p.ac.c.ak.map((A,i)=>`<button class="btn atk" data-k="${i}" ${my?"":"disabled"}><span>${A.n}</span><small>⚡${A.cost} · ${atkTxt(A)}</small></button>`).join("")}<div class="wide"><span class="chip${G.es?" on":""}" id="ez">${p.ez?EN[p.ez]+" énergie à attacher":"pas d’énergie ce tour"}</span><button class="sbtn" id="ps">Passer</button><button class="sbtn" id="rl">❓</button></div>${G.pend||G.es?'<div class="wide"><button class="lk" id="cc">Annuler l’action en cours</button></div>':""}</div>`
-  :`<div class="wide"><span class="chip on">Choisis une créature du banc ▲</span></div>`;
+  :p.ac?`<div class="acts">${p.ac.c.ak.map((A,i)=>`<button class="btn atk" data-k="${i}" ${my?"":"disabled"}><span>${A.n}</span><small>⚡${A.cost} · ${atkTxt(A)}</small></button>`).join("")}<div class="wide"><span class="chip${G.es?" on":""}" id="ez">${p.ez?EN[p.ez]+" énergie à attacher":"pas d’énergie ce tour"}</span><button class="sbtn" id="ps">Passer</button><button class="sbtn" id="sr" title="Abandonner">🏳️</button><button class="sbtn" id="rl">❓</button></div>${G.pend||G.es?'<div class="wide"><button class="lk" id="cc">Annuler l’action en cours</button></div>':""}</div>`
+  :`<div class="wide"><span class="chip on">Choisis une créature du banc ▲</span><button class="sbtn" id="sr" title="Abandonner">🏳️</button></div>`;
  m.innerHTML=`<div class="arena" style="background:${(MAT[S.mat]||MAT[0]).g}"><div class="foe"><div class="bar"><span class="tok" style="background:radial-gradient(circle at 35% 30%,#cfd8dc,#37474f 70%)">🤖</span><b>Rival ${a.pt}/3 ★</b><span class="mt2">main ${a.hd.length} · pioche ${a.dk.length}${G.fld?" · "+FLDN[G.fld.t]:""}</span>${G.t?'<span class="turnv">▶ rival joue</span>':""}</div><div class="bnr">${a.bn.map((x,i)=>`<div class="mini" style="cursor:default"><div class="spr ${x.c.t}${chr(x.c.id,x.ch)?" chr":""}">${x.c.img?`<img src="${x.c.img}" alt="">`:x.c.e}</div><span class="mh">${x.c.n}</span><span class="mh">PV ${mx0(x.hp)}</span></div>`).join("")}</div><div class="actv">${z("x",a.ac)}</div></div><p class="msg">${G.m}</p><div class="actv me">${z("a",p.ac)}</div><div class="bnr">${[0,1,2].map(i=>p.bn[i]?mini(p.bn[i],i):'<div class="mini" style="cursor:default;opacity:.4">vide</div>').join("")}</div><div class="bar"><span class="tok" style="background:${skOf().g}">${skOf().e}</span><b>Toi ${p.pt}/3 ★</b>${!G.t?'<span class="turnv">▶ à toi</span>':""}${G.on?`<span class="mt2">⏱ <b id="tmr">${G.tm==null?90:G.tm} s</b></span>`:""}<span class="mt2">retraite : clique un banc</span></div></div><div class="hd">${hand||'<div class="pc em">main vide</div>'}</div>${acts}`;
  if(G.over){$("#nw").onclick=()=>{if(G.on)netClose();G=null;render()};return}
  m.querySelectorAll("[data-h]").forEach(el=>el.onclick=()=>{if(!my)return;const i=+el.dataset.h,e=p.hd[i];
@@ -643,7 +649,7 @@ function board(){
   board()});
  m.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{if(!my)return;atk(0,+b.dataset.k)});
  const ps=$("#ps");if(ps)ps.onclick=()=>{if(!my)return;G.m="Tu passes ton tour.";endTurn();board()};
- const rl=$("#rl");if(rl)rl.onclick=rules;
+ const rl=$("#rl");if(rl)rl.onclick=rules;const sr=$("#sr");if(sr)sr.onclick=surrender;
  if(G.on){
   m.querySelectorAll("[data-h]").forEach(el=>el.onclick=()=>{if(!my)return;const i=+el.dataset.h,e=p.hd[i];if(!e)return;
    if(e.k=="c"){if(p.bn.length>=3){G.m="Le banc est plein (3 max).";board();return}actPose(i)}
