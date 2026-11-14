@@ -318,7 +318,8 @@ function netBind(con){con.on("data",d=>netRecv(d));con.on("close",()=>{if(G&&G.o
 function netWait(code,join){show(`<div class="itv"><b>🌐 ${join?"Connexion au salon":"Code du salon"} : ${join?"…":code}</b><p class="mt">${join?"Connexion à l'hôte…":"Partage ce code à ton adversaire : il ouvre ⚔️ Duel → 🌐 Combat en ligne → Rejoindre, et tape le code."}</p></div><button class="lk" id="ncx">Annuler</button>`,netClose);const nx=$("#ncx");if(nx)nx.onclick=netClose}
 function netSend(m){try{if(net&&net.con&&net.con.open)net.con.send(m)}catch(e){}}
 function netClose(){try{if(net){if(net.con){try{net.con.close()}catch(e){}}if(net.peer){try{net.peer.destroy()}catch(e){}}}}catch(e){}net=null;netQ.length=0}
-function startOnline(sp1,sp2,seed,gt){sp1=specOf(sp1);sp2=specOf(sp2);const r1=srng(seed+1),r2=srng(seed+2);
+function spHash(sp){let h=0;const s=JSON.stringify(sp);for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return h}
+function startOnline(sp1,sp2,seed,gt){const r1=srng(seed+spHash(sp1)),r2=srng(seed+spHash(sp2));sp1=specOf(sp1);sp2=specOf(sp2);
  G={p:side(sp1,r1),a:side(sp2,r2),t:gt?1:0,on:1,fld:null,tm:90,es:0,pr:0,prs:null,n:0,over:0,win:0,busy:0,pend:null,m:"⚔️ Duel en ligne ! Chaque tour : 90 s pour agir. Pose tes créatures, attache l'énergie ⚡, puis attaque."};
  S.dl++;addProg("duel");S.use=S.use||{};S.use[G.p.ac.c.id]=(S.use[G.p.ac.c.id]||0)+1;save();
  DRNG=srng(seed+3);begin();board()}
