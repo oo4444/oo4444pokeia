@@ -228,6 +228,7 @@ textarea{width:100%;background:var(--bd);border:0;border-radius:12px;padding:10p
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <script>
+(function(){var V="1.1.0";window.PKV=V;try{var last=localStorage.getItem("pkv")||"";if(last!==V)localStorage.setItem("pkv",V);fetch("version.json?cb="+Date.now()).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.v||j.v===V)return;if(sessionStorage.getItem("pkrl")===j.v)return;sessionStorage.setItem("pkrl",j.v);try{toast("🔄 Nouvelle version "+j.v+" : rechargement...")}catch(e){}setTimeout(function(){location.reload()},1500)}).catch(function(){})}catch(e){}})();
 const T={F:"Flamme",O:"Onde",P:"Feuille",E:"Éclair",M:"Minéral",Y:"Psy",A:"Abysses",S:"Spectre",X:"Machine"},TY=["F","O","P","E","M","Y","A","S","X"];
 const EN={F:"🔥",O:"💧",P:"🍃",E:"⚡",M:"🪨",Y:"🔮",A:"🌑",S:"👻",X:"⚙️"},WK={F:"O",O:"P",P:"F",E:"P",M:"X",Y:"M",A:"E",S:"Y",X:"E"};
 const RS=["◆","◆◆","◆◆◆","★","★★"],MAX=5,INT=120000,MAXQ=3,MINC=6;
