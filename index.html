@@ -507,7 +507,8 @@ let S={p:3,t:Date.now(),o:{},w:0,n:0,dk:null,m:0,skin:0,g:0,ch:{},q:null,qw:null
 try{const j=JSON.parse(localStorage.getItem("pocketia")||"null");if(j)S=Object.assign(S,j)}catch(e){}
 const save=()=>{try{localStorage.setItem("pocketia",JSON.stringify(S))}catch(e){}lbAuto()};
 if(S.o)for(const k of Object.keys(S.o))if(!C.some(c=>c.id==+k))delete S.o[k];
-if(S.dk&&S.dk.c)S.dk.c=S.dk.c.filter(([id])=>C.some(c=>c.id==id));
+if(S.dk&&S.dk.c)S.dk.c=S.dk.c.filter(([id])=>C.some(c=>c.id==id)).map(([id,q])=>[id,Math.min(q,S.o[id]||0)]).filter(([id,q])=>q>0);
+if(S.dk&&S.dk.it)S.dk.it=S.dk.it.map(([id,q])=>[id,Math.min(q,(S.oi||{})[id]||0)]).filter(([id,q])=>q>0);
 if(S.dk&&S.dk.tr)S.dk.tr=S.dk.tr.filter(([id])=>TR.some(t=>t.id==id));
 if(S.skin==null)S.skin=0;
 if(!S.oi)S.oi={0:4,1:3,2:3,3:3,4:3,5:3,6:2,7:1,8:1,9:1,10:1};
@@ -824,7 +825,7 @@ function dkAdd(t,id,d){const arr=t=="c"?S.dk.c:t=="tr"?S.dk.tr:S.dk.it;let e=arr
  else{if(!e)return;e[1]--;if(e[1]<=0)arr.splice(arr.indexOf(e),1)}
  render()}
 function dkTab(){const m=$("main");if(!S.dk)S.dk={c:[],it:[],tr:[]};if(!S.dk.tr)S.dk.tr=[];
- const tot=dkTot(),cre=dkCre(),valid=tot==20&&cre>=MINC;
+ const tot=dkTot(),cre=dkCre(),over=S.dk.c.some(([id,q])=>q>(S.o[id]||0))||S.dk.it.some(([id,q])=>q>((S.oi||{})[id]||0)),valid=tot==20&&cre>=MINC&&!over;
  const qi=id=>{const e=S.dk.it.find(x=>x[0]==id);return e?e[1]:0};
  const q=id=>{const e=S.dk.c.find(x=>x[0]==id);return e?e[1]:0};
  const qt=id=>{const e=S.dk.tr.find(x=>x[0]==id);return e?e[1]:0};
@@ -840,7 +841,7 @@ function dkTab(){const m=$("main");if(!S.dk)S.dk={c:[],it:[],tr:[]};if(!S.dk.tr)
   :FIL=="I"
   ?`<div class="g">${IT.map(it=>`<div class="dkc">${itemCard(it)}<div class="qtl"><button data-a="+" data-t="it" data-id="${it.id}">+</button><b>${qi(it.id)}</b><button data-a="−" data-t="it" data-id="${it.id}">−</button></div></div>`).join("")}</div><h3>🛠️ Atelier</h3><p class="mt">Combine des objets pour en créer de meilleurs ! Possession : ${Object.values(S.oi).reduce((a,b)=>a+b,0)} objets · gagne des objets en duel.</p>${RCP.map((r,ri)=>{const can=r.i.every(([id,q])=>(S.oi[id]||0)>=q);const out=Array.isArray(r.o)?IT[r.o[0]].e+" "+IT[r.o[0]].n:"🌦️ Terrain aléatoire";return `<div class="shoprow"><span class="mt2">${r.i.map(([id,q])=>q+"× "+IT[id].e+" "+IT[id].n).join(" + ")}</span><span class="sp"></span><b>→ ${out}</b><button class="sbtn pri" data-rc="${ri}" ${can?"":"disabled"}>Créer</button></div>`}).join("")}`
   :list.length?`<div class="g">${list.map(c=>`<div class="dkc"><div class="sw">${card(c)}</div><div class="qtl"><button data-a="+" data-t="c" data-id="${c.id}">+</button><b>${q(c.id)}</b><button data-a="−" data-t="c" data-id="${c.id}">−</button></div></div>`).join("")}</div>`:`<p class="mt">Aucune créature de ce type. Ouvre des boosters !</p>`}
- <p class="mt">${valid?"✅ Deck valide ! Enregistre-le pour l’utiliser en duel.":tot>20?"Trop de cartes : retire-en.":tot<20?"Ajoute des cartes pour atteindre 20.":"Il faut au moins "+MINC+" créatures."}</p>`;
+ <p class="mt">${valid?"✅ Deck valide ! Enregistre-le pour l’utiliser en duel.":tot>20?"Trop de cartes : retire-en.":tot<20?"Ajoute des cartes pour atteindre 20.":over?"Certaines cartes dépassent tes exemplaires possédés.":"Il faut au moins "+MINC+" créatures."}</p>`;
  m.querySelectorAll("[data-f]").forEach(el=>el.onclick=()=>{FIL=el.dataset.f;render()});
  m.querySelectorAll("[data-fl]").forEach(el=>el.onclick=()=>{const id=+el.dataset.fl;if((S.oi[id]||0)<1){toast("Tu n'as pas cet objet : crée-le à l'Atelier !");return}S.fl=S.fl==id?null:id;save();render();toast(S.fl!=null?"🏞️ Terrain de départ : "+IT[id].n:"Terrain retiré")});
  m.querySelectorAll(".qtl button").forEach(el=>el.onclick=()=>dkAdd(el.dataset.t,+el.dataset.id,el.dataset.a=="+"?1:-1));
@@ -848,9 +849,9 @@ function dkTab(){const m=$("main");if(!S.dk)S.dk={c:[],it:[],tr:[]};if(!S.dk.tr)
  $("#vd").onclick=()=>{S.dk={c:[],it:[],tr:[]};render()};
  $("#au").onclick=()=>{S.dk={c:[],it:[],tr:[]};
   const o2=C.filter(c=>S.o[c.id]).sort((a,b)=>b.r-a.r||b.h-a.h);
-  o2.forEach(c=>{if(dkTot()<=12)S.dk.c.push([c.id,2])});
-  [[0,2],[5,2]].forEach(([id,n])=>{if(dkTot()+n<=20)S.dk.it.push([id,n])});
-  for(const c of o2){while(dkTot()<20){const e=S.dk.c.find(x=>x[0]==c.id);if(e&&e[1]<MAXQ)e[1]++;else if(!e&&dkTot()<20)S.dk.c.push([c.id,1]);else break}}
+  o2.forEach(c=>{const n=Math.min(2,S.o[c.id]||0);if(n>0&&dkTot()<=12)S.dk.c.push([c.id,n])});
+  [[0,2],[5,2]].forEach(([id,n])=>{const q=Math.min(n,(S.oi||{})[id]||0);if(q>0&&dkTot()+q<=20)S.dk.it.push([id,q])});
+  for(const c of o2){while(dkTot()<20){const e=S.dk.c.find(x=>x[0]==c.id),cap=Math.min(MAXQ,S.o[c.id]||0);if(e&&e[1]<cap)e[1]++;else if(!e&&dkTot()<20)S.dk.c.push([c.id,1]);else break}}
   render()};
  $("#sv").onclick=()=>{if(!valid)return;save();toast("Deck enregistré !")}}
 function prTab(){const m=$("main"),bd=badges(),hs=S.hist||[],hw=hs.filter(x=>x).length,hl=hs.length-hw,fk=Object.entries(S.use||{}).sort((a,b)=>b[1]-a[1])[0];
