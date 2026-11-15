@@ -1,0 +1,15 @@
+{
+  "name": "Pocketia — jeu de cartes à collectionner",
+  "short_name": "Pocketia",
+  "description": "Jeu de cartes à collectionner : ouvre des boosters, construis ton deck et duelle !",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eceaf7",
+  "theme_color": "#5b3fd0",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
