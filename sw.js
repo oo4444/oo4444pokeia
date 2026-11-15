@@ -1,4 +1,4 @@
-const CACHE = 'pocketia-v1';
+const CACHE = 'pocketia-v2';
 const CORE = ['./', 'manifest.json', 'icon.svg', 'img/m1.js'];
 
 self.addEventListener('install', e => {
@@ -28,11 +28,15 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
-  // Le reste (images, icônes) : cache d'abord.
+  // Le reste (images, m1.js) : cache d'abord, mais revalidé en arrière-plan
+  // (stale-while-revalidate) pour que les mises à jour arrivent au lancement suivant.
   e.respondWith(
-    caches.match(e.request, { ignoreSearch: true }).then(m => m || fetch(e.request).then(r => {
-      if (r && r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(e.request, cp)).catch(() => {}); }
-      return r;
-    }))
+    caches.match(e.request, { ignoreSearch: true }).then(m => {
+      const net = fetch(e.request).then(r => {
+        if (r && r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(e.request, cp)).catch(() => {}); }
+        return r;
+      }).catch(() => m);
+      return m || net;
+    })
   );
 });
