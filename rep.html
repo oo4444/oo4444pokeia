@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pocketia — Réparation v2</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#14122b;color:#f0eefc;max-width:520px;margin:0 auto;padding:18px;text-align:center}
+h1{font-size:21px;margin:8px 0}
+button{font:700 17px system-ui;padding:13px 24px;border:0;border-radius:999px;color:#fff;margin:8px 4px;cursor:pointer}
+#fix{background:#e8572f;font-size:19px}
+#go{background:#3fa45f}
+#wipe{background:#555;font-size:14px}
+pre{text-align:left;background:#221f45;border-radius:10px;padding:12px;font-size:13px;white-space:pre-wrap;word-break:break-word;min-height:60px}
+a{color:#8c74ff}
+</style>
+</head>
+<body>
+<h1>🔧 Pocketia — Réparation v2</h1>
+<p>Tes cartes et ta progression sont conservées (sauf bouton rouge foncé).</p>
+<pre id="log">Chargement…</pre>
+<button id="fix">🔧 Vider le cache cassé</button>
+<button id="go">⚡ Ouvrir le jeu</button>
+<button id="wipe">🗑️ Réinitialiser la sauvegarde (dernier recours)</button>
+<p><a href="./">← Jeu normal</a></p>
+<script>
+var log=document.getElementById("log"),L=[];
+function out(m){L.push(m);log.textContent=L.join("
+")}
+window.onerror=function(m,s,l){out("⚠️ ERREUR JS : "+m+" (ligne "+l+")");return false};
+function enc(s){try{return new TextEncoder().encode(s)}catch(e){var b=[],i,c;for(i=0;i<s.length;i++){c=s.charCodeAt(i);if(c>=0xD800&&c<=0xDBFF&&i+1<s.length){var d=s.charCodeAt(i+1);if(d>=0xDC00&&d<=0xDFFF){var cp=0x10000+((c-0xD800)<<10)+(d-0xDC00);b.push(0xF0|(cp>>18),0x80|((cp>>12)&63),0x80|((cp>>6)&63),0x80|(cp&63));i++;continue}}if(c<0x80)b.push(c);else if(c<0x800)b.push(0xC0|(c>>6),0x80|(c&63));else b.push(0xE0|(c>>12),0x80|((c>>6)&63),0x80|(c&63))}return new Uint8Array(b)}}
+function hs(s){var b=enc(s),x=5381,i;for(i=0;i<b.length;i++)x=(x*33+b[i])>>>0;return x}
+function hashCheck(t){var m=t.match(/var V="([^"]*)",PKH="(\d+)"/);if(!m)return "illisible ("+t.length+" car.)";var c=t.replace(m[0],'var V="'+m[1]+'",PKH=""');var h=String(hs(c));return "v"+m[1]+" — empreinte "+(h===m[2]?"✅ OK":"❌ CASSÉE ("+h+" ≠ "+m[2]+")")}
+function diag(){
+ try{
+  out("Page chargée ✓ — JS fonctionne");
+  if(navigator.serviceWorker&&navigator.serviceWorker.controller)out("Service worker : ACTIF (contrôle cette page)");
+  else out("Service worker : aucun");
+  try{var sv=localStorage.getItem("pocketia")||"";JSON.parse(sv||"null");out("Sauvegarde : présente ("+sv.length+" car.), lisible ✓")}catch(e){out("Sauvegarde : illisible ! ("+e+")")}
+  fetch("version.json?cb="+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){out("Réseau ✓ — version en ligne : "+t)}).catch(function(e){out("⚠️ Réseau indisponible : "+e)});
+  fetch("index.html?cb="+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){out("Fichier servi par le site : "+hashCheck(t))}).catch(function(e){out("⚠️ Téléchargement impossible : "+e)});
+  if(window.caches&&caches.keys){caches.keys().then(function(ks){
+   if(!ks.length){out("Caches : vides");return}
+   var done=0;out("Caches trouvés : "+ks.join(", "));
+   ks.forEach(function(k){caches.open(k).then(function(c){return c.match(new URL("index.html",location.href),{ignoreSearch:true})}).then(function(m){
+    if(m){m.text().then(function(t){out("  · "+k+" contient index.html : "+hashCheck(t));bump()}).catch(function(){out("  · "+k+" : index.html illisible");bump()})}
+    else{out("  · "+k+" : pas de index.html en cache");bump()}
+   }).catch(bump))});
+   function bump(){done++;if(done===ks.length)out("Diagnostic terminé ↓ appuie sur 🔧")}
+  }).catch(function(){})}else{out("caches API : non supportée")}
+ }catch(e){out("⚠️ Erreur diagnostic : "+e)}
+}
+document.getElementById("fix").onclick=function(){
+ this.textContent="Réparation…";out("--- Réparation ---");
+ try{
+  var p=Promise.resolve();
+  if(navigator.serviceWorker){p=navigator.serviceWorker.getRegistrations().then(function(rs){
+   var n=0;rs.forEach(function(r){try{r.unregister();n++}catch(e){}});out("Service workers désactivés : "+n);
+  }).catch(function(e){out("SW : "+e)})}
+  p.then(function(){if(!window.caches||!caches.keys){out("Terminé. Appuie sur ⚡ Ouvrir le jeu");return}
+   return caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)})).then(function(){out("Caches vidés ✓ ("+ks.length+")")})})
+  }).then(function(){this&&(document.getElementById("fix").textContent="✓ Cache vidé")}).catch(function(e){out("⚠️ "+e)});
+  setTimeout(function(){out("Maintenant : appuie sur ⚡ Ouvrir le jeu")},800);
+ }catch(e){out("⚠️ "+e)}
+};
+document.getElementById("go").onclick=function(){location.href="./?f="+Date.now()};
+document.getElementById("wipe").onclick=function(){
+ if(!confirm("Effacer TOUTE la progression ? (cartes, gemmes, decks) Cette action est définitive."))return;
+ try{localStorage.clear();out("Sauvegarde effacée. Appuie sur ⚡ Ouvrir le jeu")}catch(e){out("⚠️ "+e)}
+};
+diag();
+</script>
+</body>
+</html>
