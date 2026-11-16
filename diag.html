@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pocketia — Réparation</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#14122b;color:#f0eefc;max-width:520px;margin:0 auto;padding:20px;text-align:center}
+h1{font-size:22px}
+button{font:700 18px system-ui;padding:14px 30px;border:0;border-radius:999px;background:#e8572f;color:#fff;margin:14px 6px;cursor:pointer}
+pre{text-align:left;background:#221f45;border-radius:10px;padding:12px;font-size:13px;white-space:pre-wrap;word-break:break-word}
+a{color:#8c74ff}
+</style>
+</head>
+<body>
+<h1>🔧 Pocketia — Réparation</h1>
+<p>Cet outil vide le cache cassé du jeu. <b>Tes cartes et ta progression sont conservées.</b></p>
+<pre id="log">Diagnostic en cours…</pre>
+<button id="fix">🔧 Réparer maintenant</button>
+<p><a href="./">← Ouvrir le jeu</a></p>
+<script>
+function hs(s){var b=new TextEncoder().encode(s),x=5381,i;for(i=0;i<b.length;i++)x=(x*33+b[i])>>>0;return x}
+var log=document.getElementById("log"),L=[];
+function out(m){L.push(m);log.textContent=L.join("
+")}
+async function diag(){
+ try{
+  var vr=await fetch("version.json?cb="+Date.now(),{cache:"no-store"});
+  out("Version en ligne : "+(await vr.text()));
+ }catch(e){out("⚠️ Réseau indisponible : "+e)}
+ try{
+  var r=await fetch("index.html?cb="+Date.now(),{cache:"no-store"});
+  var t=await r.text();
+  var m=t.match(/var V="([^"]*)",PKH="(\d+)"/);
+  if(!m){out("⚠️ Fichier reçu illisible ("+t.length+" caractères)");return}
+  var c=t.replace(m[0],'var V="'+m[1]+'",PKH=""');
+  var h=String(hs(c));
+  out("Fichier servi : v"+m[1]+" — empreinte "+(h===m[2]?"✅ OK":"❌ CASSÉE ("+h+" ≠ "+m[2]+")"));
+ }catch(e){out("⚠️ Impossible de télécharger le jeu : "+e)}
+}
+document.getElementById("fix").onclick=async function(){
+ this.disabled=true;this.textContent="Réparation…";
+ out("Réparation en cours…");
+ try{
+  if("serviceWorker" in navigator){
+   var rs=await navigator.serviceWorker.getRegistrations();
+   for(var i=0;i<rs.length;i++){try{await rs[i].unregister()}catch(e){}}
+   out("Service worker désactivé ✓");
+  }
+  var ks=await caches.keys();
+  for(var j=0;j<ks.length;j++){await caches.delete(ks[j])}
+  out("Caches vidés ✓ ("+ks.length+" cache(s))");
+  out("Terminé ! Ouverture du jeu…");
+  setTimeout(function(){location.href="./"},1200);
+ }catch(e){out("⚠️ Erreur : "+e);this.disabled=false;this.textContent="🔧 Réessayer"}
+};
+diag();
+</script>
+</body>
+</html>
